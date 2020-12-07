@@ -77,7 +77,7 @@ class Perceptron(object):
 		plt.plot(episodes, self.totalError, color = "blue")
 		plt.xlabel('$Episode$')
 		plt.ylabel('$Total $ $error $ $per $ $episode$')
-		plt.savefig('accumulated_errors_for_each_epoch.png', bbox_inches = "tight", dpi = 200)    
+		plt.savefig('accumulated_errors_over_each_epoch.png', bbox_inches = "tight", dpi = 200)    
 		plt.show()
 
 	def splitter(self, percentage):
