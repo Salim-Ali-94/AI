@@ -16,11 +16,11 @@ if __name__ == "__main__":
     X = data.iloc[0:100, [0, 2]].values
 
     # apply the classifier
-    ANN = perceptron.Perceptron(X, y, learning_rate, episodes)
-    ANN.splitter(training_data_percent)
-    ANN.train()
-    ANN.tester()
-    label = int(ANN.classifier(new_point))
+    neuron = perceptron.Perceptron(X, y, learning_rate, episodes)
+    neuron.splitter(training_data_percent)
+    neuron.train()
+    neuron.tester()
+    label = int(neuron.classifier(new_point))
 
     if (label == 0):
         print("\nThe new flower belongs to the Setosa species\n")
@@ -28,18 +28,18 @@ if __name__ == "__main__":
         print("\nThe new flower belongs to the Versicolor species\n")
 
     # plot the results
-    ANN.plotter()
+    neuron.plotter()
     x = np.linspace(0.9*X[0:100, 0].min() - 4, 1.1*X[0:100, 0].max() + 4, 100)
-    y = -(ANN.weights[0] / ANN.weights[1])*x - ANN.bias / ANN.weights[1]
-    total = ANN.features.shape[0]
+    y = -(neuron.weights[0] / neuron.weights[1])*x - neuron.bias / neuron.weights[1]
+    total = neuron.features.shape[0]
     half = total // 2
 
     plt.figure()
     plt.plot(x, y, color = "black", label = "$Decision $ $boundary$")
     plt.plot(new_point[0], new_point[1], "x", color = "indigo", label = "$New $ $point$")
-    plt.plot(ANN.features[0:half, 0], ANN.features[0:half, 1], ".", color = "red", label = "$Species $ $setosa$")
-    plt.plot(ANN.features[half:total, 0], ANN.features[half:total, 1], ".", color = "blue", label = "$Species $ $versicolor$")
-    plt.plot(ANN.test_inputs[:, 0], ANN.test_inputs[:, 1], ".", color = "green", label = "$Test $ $data$")
+    plt.plot(neuron.features[0:half, 0], neuron.features[0:half, 1], ".", color = "red", label = "$Species $ $setosa$")
+    plt.plot(neuron.features[half:total, 0], neuron.features[half:total, 1], ".", color = "blue", label = "$Species $ $versicolor$")
+    plt.plot(neuron.test_inputs[:, 0], neuron.test_inputs[:, 1], ".", color = "green", label = "$Test $ $data$")
     plt.gca().set_xlim(left = 0.9*X[0:100, 0].min(), right = 1.1*X[0:100, 0].max())
     plt.gca().set_ylim(bottom = 0.9*X[0:100, 1].min(), top = 1.1*X[0:100, 1].max())
     plt.xlabel('$Sepal $ $length$')
