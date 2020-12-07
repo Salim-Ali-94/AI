@@ -31,9 +31,9 @@ if __name__ == "__main__":
     ANN.plotter()
     x = np.linspace(-1, 10, 100)
     y = -(ANN.weights[0] / ANN.weights[1])*x - ANN.bias / ANN.weights[1]
+    plot_name = "classifier_results"
     total = ANN.features.shape[0]
     half = total // 2
-    plot_name = "classifier_results"
 
     plt.figure()
     plt.plot(x, y, color = "black", label = "$Decision $ $boundary$")
