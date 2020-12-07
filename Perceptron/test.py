@@ -31,7 +31,6 @@ if __name__ == "__main__":
     ANN.plotter()
     x = np.linspace(0.9*X[0:100, 0].min() - 4, 1.1*X[0:100, 0].max() + 4, 100)
     y = -(ANN.weights[0] / ANN.weights[1])*x - ANN.bias / ANN.weights[1]
-    plot_name = "classifier_results"
     total = ANN.features.shape[0]
     half = total // 2
 
@@ -46,5 +45,5 @@ if __name__ == "__main__":
     plt.xlabel('$Sepal $ $length$')
     plt.ylabel('$Petal $ $length$')
     plt.legend()
-    plt.savefig('{}.png'.format(plot_name), bbox_inches = "tight", dpi = 200)    
+    plt.savefig('classifier_results.png', bbox_inches = "tight", dpi = 200)    
     plt.show()
