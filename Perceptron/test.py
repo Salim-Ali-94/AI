@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     # plot the results
     ANN.plotter()
-    x = np.linspace(-1, 10, 1000)
+    x = np.linspace(-1, 10, 100)
     y = -(ANN.weights[0] / ANN.weights[1])*x - ANN.bias / ANN.weights[1]
     total = ANN.features.shape[0]
     half = total // 2
