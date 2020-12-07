@@ -100,8 +100,8 @@ class Perceptron(object):
 		trainingSet_inputs = np.concatenate((trainingSet_characteristicA, trainingSet_characteristicB))
 		testSet_inputs = np.concatenate((testSet_characteristicA, testSet_characteristicB))
 
-		self.features = trainingSet_inputs
-		self.labels = trainingSet_outputs
-		self.test_inputs = testSet_inputs
-		self.test_outputs = testSet_outputs
+		self.features = np.copy(trainingSet_inputs)
+		self.labels = np.copy(trainingSet_outputs)
+		self.test_inputs = np.copy(testSet_inputs)
+		self.test_outputs = np.copy(testSet_outputs)
 		self.indicator = 1
