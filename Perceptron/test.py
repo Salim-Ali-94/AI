@@ -15,7 +15,7 @@ if __name__ == "__main__":
     y = np.where(y == 'setosa', 0, 1)
     X = data.iloc[0:100, [0, 2]].values
 
-	# apply the classifier
+    # apply the classifier
     ANN = perceptron.Perceptron(X, y, learning_rate, episodes)
     ANN.splitter(train_percent)
     ANN.train()
