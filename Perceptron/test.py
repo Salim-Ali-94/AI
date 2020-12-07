@@ -8,7 +8,7 @@ if __name__ == "__main__":
 
     # setup the variables
     episodes, learning_rate = 100, 0.01
-    train_percent = 75
+    training_data_percent = 75
     new_point = np.array([5.31, 3.76])
     data = pd.read_csv('iris.csv')
     y = data.iloc[0:100, 4].values
@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     # apply the classifier
     ANN = perceptron.Perceptron(X, y, learning_rate, episodes)
-    ANN.splitter(train_percent)
+    ANN.splitter(training_data_percent)
     ANN.train()
     ANN.tester()
     label = int(ANN.classifier(new_point))
@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     # plot the results
     ANN.plotter()
-    x = np.linspace(-1, 10, 100)
+    x = np.linspace(0.9*X[0:100, 0].min() - 4, 1.1*X[0:100, 0].max() + 4, 100)
     y = -(ANN.weights[0] / ANN.weights[1])*x - ANN.bias / ANN.weights[1]
     plot_name = "classifier_results"
     total = ANN.features.shape[0]
