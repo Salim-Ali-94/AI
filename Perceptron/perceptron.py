@@ -18,6 +18,34 @@ class Perceptron(object):
 		self.bias = np.random.uniform(-1, 1)
 		self.indicator = 0
 
+
+	def splitter(self, percentage):
+
+		factor = percentage / 100
+		total = len(self.labels)
+		half = total // 2
+		fraction = int(half*factor)
+		remainder = int(total - (half - fraction))
+		trainingSet_labelA = self.labels[0:fraction]
+		trainingSet_labelB = self.labels[half:remainder]
+		testSet_labelA = self.labels[fraction:half]
+		testSet_labelB = self.labels[remainder:total]
+		trainingSet_outputs = np.concatenate((trainingSet_labelA, trainingSet_labelB))
+		testSet_outputs = np.concatenate((testSet_labelA, testSet_labelB))
+		trainingSet_characteristicA = self.features[0:fraction, :]
+		trainingSet_characteristicB = self.features[half:remainder, :]
+		testSet_characteristicA = self.features[fraction:half, :]
+		testSet_characteristicB = self.features[remainder:total, :]
+		trainingSet_inputs = np.concatenate((trainingSet_characteristicA, trainingSet_characteristicB))
+		testSet_inputs = np.concatenate((testSet_characteristicA, testSet_characteristicB))
+
+		self.features = np.copy(trainingSet_inputs)
+		self.labels = np.copy(trainingSet_outputs)
+		self.test_inputs = np.copy(testSet_inputs)
+		self.test_outputs = np.copy(testSet_outputs)
+		self.indicator = 1
+
+
 	def train(self):
 
 		self.totalError = []
@@ -38,6 +66,7 @@ class Perceptron(object):
 			Error = 0
 
 		self.totalError = np.asarray(self.totalError)
+
 
 	def tester(self, data = None, target = None):
 
@@ -68,7 +97,8 @@ class Perceptron(object):
 
 		print("The classifier correctly labeled {} input samples "\
 		 	  "and incorrectly labeled {} samples from the test "\
-		 	  "dataset\n".format(sucessful_classification, miss_classification))
+		 	  "dataset\n\n".format(sucessful_classification, miss_classification))
+
 
 	def plotter(self):
 
@@ -79,29 +109,3 @@ class Perceptron(object):
 		plt.ylabel('$Total $ $error $ $per $ $episode$')
 		plt.savefig('accumulated_errors_over_each_epoch.png', bbox_inches = "tight", dpi = 200)    
 		plt.show()
-
-	def splitter(self, percentage):
-
-		factor = percentage / 100
-		total = len(self.labels)
-		half = total // 2
-		fraction = int(half*factor)
-		remainder = int(total - (half - fraction))
-		trainingSet_labelA = self.labels[0:fraction]
-		trainingSet_labelB = self.labels[half:remainder]
-		testSet_labelA = self.labels[fraction:half]
-		testSet_labelB = self.labels[remainder:total]
-		trainingSet_outputs = np.concatenate((trainingSet_labelA, trainingSet_labelB))
-		testSet_outputs = np.concatenate((testSet_labelA, testSet_labelB))
-		trainingSet_characteristicA = self.features[0:fraction, :]
-		trainingSet_characteristicB = self.features[half:remainder, :]
-		testSet_characteristicA = self.features[fraction:half, :]
-		testSet_characteristicB = self.features[remainder:total, :]
-		trainingSet_inputs = np.concatenate((trainingSet_characteristicA, trainingSet_characteristicB))
-		testSet_inputs = np.concatenate((testSet_characteristicA, testSet_characteristicB))
-
-		self.features = np.copy(trainingSet_inputs)
-		self.labels = np.copy(trainingSet_outputs)
-		self.test_inputs = np.copy(testSet_inputs)
-		self.test_outputs = np.copy(testSet_outputs)
-		self.indicator = 1
