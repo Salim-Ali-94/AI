@@ -22,9 +22,9 @@ def predict(inputs, outputs, learning_rate, episodes, training_data_percent, new
     label = int(neuron.classifier(new_point))
 
     if (label == 0):
-        print("\nThe new flower belongs to the Setosa species\n")
+        print("The new flower belongs to the Setosa species\n")
     elif (label == 1):
-        print("\nThe new flower belongs to the Versicolor species\n")
+        print("The new flower belongs to the Versicolor species\n")
 
     neuron.plotter()
 
