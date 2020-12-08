@@ -48,7 +48,7 @@ class Perceptron(object):
 
 	def train(self):
 
-		self.totalError = []
+		totalError = []
 		Error = 0
 
 		for episode in range(self.epochs):
@@ -62,10 +62,10 @@ class Perceptron(object):
 				self.bias += update
 				Error += error
 
-			self.totalError.append(Error)
+			totalError.append(Error)
 			Error = 0
 
-		self.totalError = np.asarray(self.totalError)
+		self.totalError = np.asarray(totalError)
 
 
 	def tester(self, data = None, target = None):
