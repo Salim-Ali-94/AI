@@ -30,7 +30,7 @@ def predict(inputs, outputs, learning_rate, episodes, training_data_percent, new
 
     return neuron.weights, neuron.bias, neuron.features, neuron.test_inputs
 
-def plot(weights, bias, training_data, test_data, new_point):
+def plot_results(weights, bias, training_data, test_data, new_point):
 
     minimum_input = 0.9*min(min(training_data[:, 0]), min(test_data[:, 0]))
     maximum_input = 1.1*max(max(training_data[:, 0]), max(test_data[:, 0]))
@@ -62,4 +62,4 @@ if __name__ == "__main__":
     new_point = np.array([5.31, 3.76])
     x, y = initialize()
     weights, bias, training_data, test_data = predict(x, y, learning_rate, episodes, training_data_percent, new_point)
-    plot(weights, bias, training_data, test_data, new_point)
+    plot_results(weights, bias, training_data, test_data, new_point)
