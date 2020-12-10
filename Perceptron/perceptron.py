@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+plt.rcParams["font.family"] = "Arial"
 
 
 class Perceptron(object):
@@ -96,16 +97,25 @@ class Perceptron(object):
 					miss_classification += 1
 
 		print("The classifier correctly labeled {} input samples "\
-		      "and incorrectly labeled {} samples from the test "\
-		      "dataset\n\n".format(sucessful_classification, miss_classification))
+		 	  "and incorrectly labeled {} samples from the test "\
+		 	  "dataset\n\n".format(sucessful_classification, miss_classification))
 
 
 	def plotter(self):
 
 		episodes = range(1, self.epochs + 1)
 		plt.figure()
-		plt.plot(episodes, self.totalError, color = "blue")
-		plt.xlabel('$Episode$')
-		plt.ylabel('$Total $ $error $ $per $ $episode$')
+		axis = plt.axes(facecolor = "#E6E6E6")
+		axis.set_axisbelow(True)
+		plt.grid(color = "w", linestyle = "solid")
+
+		for spine in axis.spines.values():
+			spine.set_visible(False)
+
+		plt.tick_params(axis = "x", which = "both", bottom = False, top = False)
+		plt.tick_params(axis = "y", which = "both", left = False, right = False)
+		plt.plot(episodes, self.totalError, color = "blue", linewidth = 1)
+		plt.xlabel('Episode')
+		plt.ylabel('Total error per episode')
 		plt.savefig('accumulated_errors_over_each_epoch.png', bbox_inches = "tight", dpi = 200)    
 		plt.show()
