@@ -2,6 +2,7 @@ import numpy as np
 import perceptron
 import pandas as pd
 import matplotlib.pyplot as plt
+plt.rcParams["font.family"] = "Arial"
 
 
 def initialize():
@@ -30,7 +31,7 @@ def predict(inputs, outputs, learning_rate, episodes, training_data_percent, new
 
     return neuron.weights, neuron.bias, neuron.features, neuron.test_inputs
 
-def plot_results(weights, bias, training_data, test_data, new_point):
+def plot(weights, bias, training_data, test_data, new_point):
 
     minimum_input = 0.9*min(min(training_data[:, 0]), min(test_data[:, 0]))
     maximum_input = 1.1*max(max(training_data[:, 0]), max(test_data[:, 0]))
@@ -42,17 +43,26 @@ def plot_results(weights, bias, training_data, test_data, new_point):
     half = total // 2
 
     plt.figure()
-    plt.plot(x, y, color = "black", label = "$Decision $ $boundary$")
-    plt.plot(new_point[0], new_point[1], "x", color = "indigo", label = "$New $ $point$")
-    plt.plot(training_data[0:half, 0], training_data[0:half, 1], ".", color = "red", label = "$Species $ $setosa$")
-    plt.plot(training_data[half:total, 0], training_data[half:total, 1], ".", color = "blue", label = "$Species $ $versicolor$")
-    plt.plot(test_data[:, 0], test_data[:, 1], ".", color = "green", label = "$Test $ $data$")
+    axis = plt.axes(facecolor = "#E6E6E6")
+    axis.set_axisbelow(True)
+    plt.grid(color = "w", linestyle = "solid")
+
+    for spine in axis.spines.values():
+        spine.set_visible(False)
+
+    plt.tick_params(axis = "x", which = "both", bottom = False, top = False)
+    plt.tick_params(axis = "y", which = "both", left = False, right = False)
+    plt.plot(x, y, color = "black", linewidth = 1, label = "Decision boundary")
+    plt.plot(new_point[0], new_point[1], "x", color = "indigo", label = "New point")
+    plt.plot(training_data[0:half, 0], training_data[0:half, 1], ".", color = "red", label = "Species setosa")
+    plt.plot(training_data[half:total, 0], training_data[half:total, 1], ".", color = "blue", label = "Species versicolor")
+    plt.plot(test_data[:, 0], test_data[:, 1], ".", color = "green", label = "Test data")
     plt.gca().set_xlim(left = minimum_input, right = maximum_input)
     plt.gca().set_ylim(bottom = minimum_output, top = maximum_output)
-    plt.xlabel('$Sepal $ $length$')
-    plt.ylabel('$Petal $ $length$')
+    plt.xlabel('Sepal length')
+    plt.ylabel('Petal length')
     plt.legend()
-    plt.savefig('classifier_results.png', bbox_inches = "tight", dpi = 200)    
+    plt.savefig('classifier_results.png', bbox_inches = "tight", dpi = 200)
     plt.show()
 
 if __name__ == "__main__":
@@ -62,4 +72,4 @@ if __name__ == "__main__":
     new_point = np.array([5.31, 3.76])
     x, y = initialize()
     weights, bias, training_data, test_data = predict(x, y, learning_rate, episodes, training_data_percent, new_point)
-    plot_results(weights, bias, training_data, test_data, new_point)
+    plot(weights, bias, training_data, test_data, new_point)
