@@ -49,8 +49,7 @@ class Perceptron(object):
 
 	def train(self):
 
-		totalError = []
-		Error = 0
+		cost, Error = [], 0
 
 		for episode in range(self.epochs):
 
@@ -63,10 +62,10 @@ class Perceptron(object):
 				self.bias += update
 				Error += error
 
-			totalError.append(Error)
+			cost.append(Error)
 			Error = 0
 
-		self.totalError = np.asarray(totalError)
+		self.cost = np.asarray(cost)
 
 
 	def tester(self, data = None, target = None):
@@ -97,8 +96,8 @@ class Perceptron(object):
 					miss_classification += 1
 
 		print("The classifier correctly labeled {} input samples "\
-		 	  "and incorrectly labeled {} samples from the test "\
-		 	  "dataset\n\n".format(sucessful_classification, miss_classification))
+		      "and incorrectly labeled {} samples from the test "\
+		      "dataset\n\n".format(sucessful_classification, miss_classification))
 
 
 	def plotter(self):
@@ -114,7 +113,7 @@ class Perceptron(object):
 
 		plt.tick_params(axis = "x", which = "both", bottom = False, top = False)
 		plt.tick_params(axis = "y", which = "both", left = False, right = False)
-		plt.plot(episodes, self.totalError, color = "blue", linewidth = 1)
+		plt.plot(episodes, self.cost, color = "blue", linewidth = 1)
 		plt.xlabel('Episode')
 		plt.ylabel('Total error per episode')
 		plt.savefig('accumulated_errors_over_each_epoch.png', bbox_inches = "tight", dpi = 200)    
