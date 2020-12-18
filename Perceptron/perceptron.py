@@ -63,6 +63,7 @@ class Perceptron(object):
 				self.bias += update
 				Error += error
 
+			Error = np.array([Error])
 			self.cost = np.concatenate((self.cost, Error))
 			Error = 0
 
