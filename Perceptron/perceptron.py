@@ -95,9 +95,14 @@ class Perceptron(object):
 				elif (output != self.test_outputs[index]):
 					miss_classification += 1
 
-		print("The classifier correctly labeled {} input samples "\
-		      "and incorrectly labeled {} samples from the test "\
-		      "dataset\n\n".format(sucessful_classification, miss_classification))
+		if (miss_classification == 1):
+			print("The classifier correctly labeled {} input samples "\
+			      "and incorrectly labeled {} sample from the test "\
+			      "dataset\n\n".format(sucessful_classification, miss_classification))
+		else:
+			print("The classifier correctly labeled {} input samples "\
+			      "and incorrectly labeled {} samples from the test "\
+			      "dataset\n\n".format(sucessful_classification, miss_classification))
 
 
 	def plotter(self):
