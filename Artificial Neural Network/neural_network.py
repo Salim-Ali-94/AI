@@ -35,10 +35,8 @@ class Artificial_Neural_Network(object):
 			Weights.append(weight)
 			Biases.append(bias)
 
-		Weights = np.asarray(Weights)
-		Biases = np.asarray(Biases)
-		self.weights = np.copy(Weights)
-		self.biases = np.copy(Biases)
+		self.weights = np.asarray(Weights)
+		self.biases = np.asarray(Biases)
 		self.indicator = 0
 		self.cost = np.array([])
 
