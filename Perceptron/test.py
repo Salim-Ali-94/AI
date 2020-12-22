@@ -1,5 +1,5 @@
 import numpy as np
-import perceptron
+import __perceptron as perceptron
 import pandas as pd
 import matplotlib.pyplot as plt
 plt.rcParams["font.family"] = "Arial"
@@ -27,21 +27,20 @@ def predict(inputs, outputs, learning_rate, episodes, training_data_percent, new
     elif (label == 1):
         print("The new flower belongs to the Versicolor species\n")
 
-    neuron.plotter()
+    return neuron
 
-    return neuron.weights, neuron.bias, neuron.features, neuron.test_inputs
+def plot(neuron, new_point):
 
-def plot(weights, bias, training_data, test_data, new_point):
-
-    minimum_input = 0.9*min(min(training_data[:, 0]), min(test_data[:, 0]))
-    maximum_input = 1.1*max(max(training_data[:, 0]), max(test_data[:, 0]))
-    minimum_output = 0.9*min(min(training_data[:, 1]), min(test_data[:, 1]))
-    maximum_output = 1.1*max(max(training_data[:, 1]), max(test_data[:, 1]))
+    minimum_input = 0.9*min(min(neuron.features[:, 0]), min(neuron.test_inputs[:, 0]))
+    maximum_input = 1.1*max(max(neuron.features[:, 0]), max(neuron.test_inputs[:, 0]))
+    minimum_output = 0.9*min(min(neuron.features[:, 1]), min(neuron.test_inputs[:, 1]))
+    maximum_output = 1.1*max(max(neuron.features[:, 1]), max(neuron.test_inputs[:, 1]))
     x = np.linspace(minimum_input - 4, maximum_input + 4, 100)
-    y = -(weights[0] / weights[1])*x - bias / weights[1]
-    total = training_data.shape[0]
+    y = -(neuron.weights[0] / neuron.weights[1])*x - neuron.bias / neuron.weights[1]
+    total = neuron.features.shape[0]
     half = total // 2
 
+    neuron.plotter()
     plt.figure()
     axis = plt.axes(facecolor = "#E6E6E6")
     axis.set_axisbelow(True)
@@ -54,9 +53,9 @@ def plot(weights, bias, training_data, test_data, new_point):
     plt.tick_params(axis = "y", which = "both", left = False, right = False)
     plt.plot(x, y, color = "black", linewidth = 1, label = "Decision boundary")
     plt.plot(new_point[0], new_point[1], "x", color = "indigo", label = "New point")
-    plt.plot(training_data[0:half, 0], training_data[0:half, 1], ".", color = "red", label = "Species setosa")
-    plt.plot(training_data[half:total, 0], training_data[half:total, 1], ".", color = "blue", label = "Species versicolor")
-    plt.plot(test_data[:, 0], test_data[:, 1], ".", color = "green", label = "Test data")
+    plt.plot(neuron.features[0:half, 0], neuron.features[0:half, 1], ".", color = "red", label = "Species setosa")
+    plt.plot(neuron.features[half:total, 0], neuron.features[half:total, 1], ".", color = "blue", label = "Species versicolor")
+    plt.plot(neuron.test_inputs[:, 0], neuron.test_inputs[:, 1], ".", color = "green", label = "Test data")
     plt.gca().set_xlim(left = minimum_input, right = maximum_input)
     plt.gca().set_ylim(bottom = minimum_output, top = maximum_output)
     plt.xlabel('Sepal length')
@@ -67,9 +66,9 @@ def plot(weights, bias, training_data, test_data, new_point):
 
 if __name__ == "__main__":
 
-    episodes, learning_rate = 100, 0.01
+    episodes, learning_rate = 500, 0.1
     training_data_percent = 75
     new_point = np.array([5.31, 3.76])
     x, y = initialize()
-    weights, bias, training_data, test_data = predict(x, y, learning_rate, episodes, training_data_percent, new_point)
-    plot(weights, bias, training_data, test_data, new_point)
+    node = predict(x, y, learning_rate, episodes, training_data_percent, new_point)
+    plot(node, new_point)
