@@ -1,5 +1,5 @@
 import numpy as np
-import __perceptron as perceptron
+import perceptron
 import pandas as pd
 import matplotlib.pyplot as plt
 plt.rcParams["font.family"] = "Arial"
@@ -61,7 +61,7 @@ def plot(neuron, new_point):
     plt.xlabel('Sepal length')
     plt.ylabel('Petal length')
     plt.legend()
-    plt.savefig('check_classifier_results.png', dpi = 200)
+    plt.savefig('classifier_results.png', dpi = 200)
     plt.show()
 
 if __name__ == "__main__":
