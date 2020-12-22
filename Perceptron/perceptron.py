@@ -123,5 +123,5 @@ class Perceptron(object):
 		plt.plot(episodes, self.cost, color = "blue", linewidth = 1)
 		plt.xlabel('Episode')
 		plt.ylabel('Total error per episode')
-		plt.savefig('accumulated_errors_over_each_epoch.png', bbox_inches = "tight", dpi = 200)    
+		plt.savefig('accumulated_errors_over_each_epoch.png')    
 		plt.show()
