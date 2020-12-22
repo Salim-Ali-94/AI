@@ -61,7 +61,7 @@ def plot(neuron, new_point):
     plt.xlabel('Sepal length')
     plt.ylabel('Petal length')
     plt.legend()
-    plt.savefig('classifier_results.png')
+    plt.savefig('check_classifier_results.png', dpi = 200)
     plt.show()
 
 if __name__ == "__main__":
