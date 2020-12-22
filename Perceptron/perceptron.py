@@ -63,6 +63,8 @@ class Perceptron(object):
 				self.bias += update
 				Error += error
 
+			print("Episode:", episode + 1)
+			print("Error:", Error, "\n\n")
 			Error = np.array([Error])
 			self.cost = np.concatenate((self.cost, Error))
 			Error = 0
