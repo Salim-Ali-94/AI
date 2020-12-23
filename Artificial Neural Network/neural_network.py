@@ -254,12 +254,12 @@ class Artificial_Neural_Network(object):
 
 		if (miss_classification == 1):
 			print("The classifier correctly labeled {} input samples "\
-			 	  "and incorrectly labeled {} sample from the test "\
-			 	  "dataset\n\n".format(sucessful_classification, miss_classification))
+			      "and incorrectly labeled {} sample from the test "\
+			      "dataset\n\n".format(sucessful_classification, miss_classification))
 		else:
 			print("The classifier correctly labeled {} input samples "\
-			 	  "and incorrectly labeled {} samples from the test "\
-			 	  "dataset\n\n".format(sucessful_classification, miss_classification))
+			      "and incorrectly labeled {} samples from the test "\
+			      "dataset\n\n".format(sucessful_classification, miss_classification))
 
 
 	def plotter(self):
