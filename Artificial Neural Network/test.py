@@ -16,7 +16,7 @@ def initialize():
 
 	return features, labels
 
-def predict(inputs, outputs, hyper_parameters, learning_rate, episodes, training_data_percent):
+def learn(inputs, outputs, hyper_parameters, learning_rate, episodes, training_data_percent):
 
 	ANN = network.Artificial_Neural_Network(inputs, outputs, hyper_parameters, learning_rate, episodes)
 	ANN.partition(training_data_percent, 0)
@@ -30,4 +30,4 @@ if __name__ == "__main__":
 	training_data_percent = 75
 	x, y = initialize()
 	hyper_parameters = np.array([x.shape[1], 40, 20, 10, y.shape[1]])
-	predict(x, y, hyper_parameters, learning_rate, episodes, training_data_percent)
+	learn(x, y, hyper_parameters, learning_rate, episodes, training_data_percent)
