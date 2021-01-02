@@ -11,12 +11,11 @@ class Artificial_Neural_Network(object):
 	def __init__(self, features, labels, hyper_parameters, learning_rate = 0.1, epochs = 100):
 
 		self.hyper_parameters = hyper_parameters
-		self.features = features
-		self.labels = labels
 		self.learning_rate = learning_rate
-		self.epochs = epochs
+		self.features = self.normalize(features)
 		self.layers = len(self.hyper_parameters)
-		self.features = self.normalize(self.features)
+		self.labels = labels
+		self.epochs = epochs
 		self.weights, self.biases = [], []
 
 		for index in range(self.layers - 1):
@@ -147,7 +146,7 @@ class Artificial_Neural_Network(object):
 			Derivative.append(delta_activity)
 			Activity.append(activity)
 
-		return np.asarray(Activity), np.asarray(Derivative)
+		return Activity, Derivative
 
 
 	def back_propagation(self, sample):
