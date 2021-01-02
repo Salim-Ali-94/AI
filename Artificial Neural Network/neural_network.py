@@ -11,12 +11,13 @@ class Artificial_Neural_Network(object):
 	def __init__(self, features, labels, hyper_parameters, learning_rate = 0.1, epochs = 100):
 
 		self.hyper_parameters = hyper_parameters
-		self.features = self.normalize(features)
+		self.features = features
 		self.labels = labels
 		self.learning_rate = learning_rate
 		self.epochs = epochs
 		self.layers = len(self.hyper_parameters)
-		Weights, Biases = [], []
+		self.features = self.normalize(self.features)
+		self.weights, self.biases = [], []
 
 		for index in range(self.layers - 1):
 
@@ -32,13 +33,11 @@ class Artificial_Neural_Network(object):
 			else:
 				weight = np.random.uniform(-1, 1, [self.hyper_parameters[index], self.hyper_parameters[index + 1]])
 
-			Weights.append(weight)
-			Biases.append(bias)
+			self.weights.append(weight)
+			self.biases.append(bias)
 
-		self.weights = np.asarray(Weights)
-		self.biases = np.asarray(Biases)
 		self.indicator = 0
-		self.cost = np.array([])
+		self.cost = []
 
 
 	def sigmoid(self, x, derivative = False):
@@ -73,27 +72,27 @@ class Artificial_Neural_Network(object):
 			divide = int(portion*index)
 			train_remainder = int(divide + train_fraction)
 			validate_remainder = int(train_remainder + validate_fraction)
-			next = portion*(index + 1)
+			step = portion*(index + 1)
 
 			if (index == 0):
 				if (validation_percentage == 0):
 					trainingSet_label_previous = self.labels[divide:train_remainder]
-					testSet_label_previous = self.labels[train_remainder:next]
+					testSet_label_previous = self.labels[train_remainder:step]
 					trainingSet_characteristic_previous = self.features[divide:train_remainder, :]
-					testSet_characteristic_previous = self.features[train_remainder:next, :]
+					testSet_characteristic_previous = self.features[train_remainder:step, :]
 				else:
 					trainingSet_label_previous = self.labels[divide:train_remainder]
 					validationSet_label_previous = self.labels[train_remainder:validate_remainder]
-					testSet_label_previous = self.labels[validate_remainder:next]
+					testSet_label_previous = self.labels[validate_remainder:step]
 					trainingSet_characteristic_previous = self.features[divide:train_remainder, :]
 					validationSet_characteristic_previous = self.features[train_remainder:validate_remainder, :]
-					testSet_characteristic_previous = self.features[validate_remainder:next, :]
+					testSet_characteristic_previous = self.features[validate_remainder:step, :]
 			else:
 				if (validation_percentage == 0):
 					trainingSet_label = self.labels[divide:train_remainder]
-					testSet_label = self.labels[train_remainder:next]
+					testSet_label = self.labels[train_remainder:step]
 					trainingSet_characteristic = self.features[divide:train_remainder, :]
-					testSet_characteristic = self.features[train_remainder:next, :]
+					testSet_characteristic = self.features[train_remainder:step, :]
 					trainingSet_outputs = np.concatenate((trainingSet_label_previous, trainingSet_label))
 					testSet_outputs = np.concatenate((testSet_label_previous, testSet_label))
 					trainingSet_inputs = np.concatenate((trainingSet_characteristic_previous, trainingSet_characteristic))
@@ -105,10 +104,10 @@ class Artificial_Neural_Network(object):
 				else:
 					trainingSet_label = self.labels[divide:train_remainder]
 					validationSet_label = self.labels[train_remainder:validate_remainder]
-					testSet_label = self.labels[validate_remainder:next]
+					testSet_label = self.labels[validate_remainder:step]
 					trainingSet_characteristic = self.features[divide:train_remainder, :]
 					validationSet_characteristic = self.features[train_remainder:validate_remainder, :]
-					testSet_characteristic = self.features[validate_remainder:next, :]
+					testSet_characteristic = self.features[validate_remainder:step, :]
 					trainingSet_outputs = np.concatenate((trainingSet_label_previous, trainingSet_label))
 					validationSet_outputs = np.concatenate((validationSet_label_previous, validationSet_label))
 					testSet_outputs = np.concatenate((testSet_label_previous, testSet_label))
@@ -173,7 +172,6 @@ class Artificial_Neural_Network(object):
 			Delta.append(delta)
 
 		Delta = list(reversed(Delta))
-		Delta = np.asarray(Delta)
 
 		return Delta, activity
 
@@ -209,7 +207,7 @@ class Artificial_Neural_Network(object):
 			print("Episode:", episode + 1) 
 			print("Error:", error, "\n\n")
 			error = np.array([error])
-			self.cost = np.concatenate((self.cost, error))
+			self.cost.append(error)
 			error = 0
 
 
