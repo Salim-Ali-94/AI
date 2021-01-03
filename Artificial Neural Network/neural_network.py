@@ -17,6 +17,8 @@ class Artificial_Neural_Network(object):
 		self.layers = len(self.hyper_parameters)
 		self.labels = labels
 		self.epochs = epochs
+		self.indicator = 0
+		self.cost = []
 
 		for index in range(self.layers - 1):
 
@@ -34,9 +36,6 @@ class Artificial_Neural_Network(object):
 
 			self.weights.append(weight)
 			self.biases.append(bias)
-
-		self.indicator = 0
-		self.cost = []
 
 
 	def sigmoid(self, x, derivative = False):
