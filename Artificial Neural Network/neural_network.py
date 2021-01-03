@@ -10,13 +10,13 @@ class Artificial_Neural_Network(object):
 
 	def __init__(self, features, labels, hyper_parameters, learning_rate = 0.1, epochs = 100):
 
+		self.weights, self.biases = [], []
 		self.hyper_parameters = hyper_parameters
 		self.learning_rate = learning_rate
 		self.features = self.normalize(features)
 		self.layers = len(self.hyper_parameters)
 		self.labels = labels
 		self.epochs = epochs
-		self.weights, self.biases = [], []
 
 		for index in range(self.layers - 1):
 
