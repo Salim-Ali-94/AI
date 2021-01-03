@@ -18,7 +18,7 @@ class Perceptron(object):
 		self.weights = np.random.uniform(-1, 1, self.features.shape[1])
 		self.bias = np.random.uniform(-1, 1)
 		self.indicator = 0
-		self.cost = np.array([])
+		self.cost = []
 
 
 	def splitter(self, percentage):
@@ -65,8 +65,7 @@ class Perceptron(object):
 
 			print("Episode:", episode + 1)
 			print("Error:", Error, "\n\n")
-			Error = np.array([Error])
-			self.cost = np.concatenate((self.cost, Error))
+			self.cost.append(Error)
 			Error = 0
 
 
