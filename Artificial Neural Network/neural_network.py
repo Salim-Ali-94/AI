@@ -204,7 +204,6 @@ class Artificial_Neural_Network(object):
 
 			print("Episode:", episode + 1) 
 			print("Error:", error, "\n\n")
-			error = np.array([error])
 			self.cost.append(error)
 			error = 0
 
