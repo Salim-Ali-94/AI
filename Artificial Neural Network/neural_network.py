@@ -54,6 +54,63 @@ class Artificial_Neural_Network(object):
 			return 1 / np.cosh(x.astype(float))**2
 
 
+	def splitter(self, validation_percentage, divide, train_remainder, validate_remainder, step, index):
+
+		if (index == 0):
+			if (validation_percentage == 0):
+				trainingSet_label_previous = self.labels[divide:train_remainder]
+				testSet_label_previous = self.labels[train_remainder:step]
+				trainingSet_characteristic_previous = self.features[divide:train_remainder, :]
+				testSet_characteristic_previous = self.features[train_remainder:step, :]
+			else:
+				trainingSet_label_previous = self.labels[divide:train_remainder]
+				validationSet_label_previous = self.labels[train_remainder:validate_remainder]
+				testSet_label_previous = self.labels[validate_remainder:step]
+				trainingSet_characteristic_previous = self.features[divide:train_remainder, :]
+				validationSet_characteristic_previous = self.features[train_remainder:validate_remainder, :]
+				testSet_characteristic_previous = self.features[validate_remainder:step, :]
+		else:
+			if (validation_percentage == 0):
+				trainingSet_label = self.labels[divide:train_remainder]
+				testSet_label = self.labels[train_remainder:step]
+				trainingSet_characteristic = self.features[divide:train_remainder, :]
+				testSet_characteristic = self.features[train_remainder:step, :]
+				trainingSet_outputs = np.concatenate((trainingSet_label_previous, trainingSet_label))
+				testSet_outputs = np.concatenate((testSet_label_previous, testSet_label))
+				trainingSet_inputs = np.concatenate((trainingSet_characteristic_previous, trainingSet_characteristic))
+				testSet_inputs = np.concatenate((testSet_characteristic_previous, testSet_characteristic))
+				trainingSet_label_previous = np.copy(trainingSet_outputs)
+				testSet_label_previous = np.copy(testSet_outputs)
+				trainingSet_characteristic_previous = np.copy(trainingSet_inputs)
+				testSet_characteristic_previous = np.copy(testSet_inputs)
+			else:
+				trainingSet_label = self.labels[divide:train_remainder]
+				validationSet_label = self.labels[train_remainder:validate_remainder]
+				testSet_label = self.labels[validate_remainder:step]
+				trainingSet_characteristic = self.features[divide:train_remainder, :]
+				validationSet_characteristic = self.features[train_remainder:validate_remainder, :]
+				testSet_characteristic = self.features[validate_remainder:step, :]
+				trainingSet_outputs = np.concatenate((trainingSet_label_previous, trainingSet_label))
+				validationSet_outputs = np.concatenate((validationSet_label_previous, validationSet_label))
+				testSet_outputs = np.concatenate((testSet_label_previous, testSet_label))
+				trainingSet_inputs = np.concatenate((trainingSet_characteristic_previous, trainingSet_characteristic))
+				validationSet_inputs = np.concatenate((validationSet_characteristic_previous, validationSet_characteristic))
+				testSet_inputs = np.concatenate((testSet_characteristic_previous, testSet_characteristic))
+				trainingSet_label_previous = np.copy(trainingSet_outputs)
+				validationSet_label_previous = np.copy(validationSet_outputs)
+				testSet_label_previous = np.copy(testSet_outputs)
+				trainingSet_characteristic_previous = np.copy(trainingSet_inputs)
+				validationSet_characteristic_previous = np.copy(validationSet_inputs)
+				testSet_characteristic_previous = np.copy(testSet_inputs)
+				self.validation_inputs = np.copy(validationSet_inputs)
+				self.validation_outputs = np.copy(validationSet_outputs)
+
+		self.features = np.copy(trainingSet_inputs)
+		self.labels = np.copy(trainingSet_outputs)
+		self.test_inputs = np.copy(testSet_inputs)
+		self.test_outputs = np.copy(testSet_outputs)
+
+
 	def partition(self, training_percentage, validation_percentage = 0):
 
 		train_factor = training_percentage / 100
@@ -64,6 +121,7 @@ class Artificial_Neural_Network(object):
 		portion = total // sections
 		train_fraction = int(portion*train_factor)
 		validate_fraction = int(portion*validate_factor)
+		self.indicator = 1
 
 		for index in range(sections):
 
@@ -72,60 +130,7 @@ class Artificial_Neural_Network(object):
 			validate_remainder = int(train_remainder + validate_fraction)
 			step = portion*(index + 1)
 
-			if (index == 0):
-				if (validation_percentage == 0):
-					trainingSet_label_previous = self.labels[divide:train_remainder]
-					testSet_label_previous = self.labels[train_remainder:step]
-					trainingSet_characteristic_previous = self.features[divide:train_remainder, :]
-					testSet_characteristic_previous = self.features[train_remainder:step, :]
-				else:
-					trainingSet_label_previous = self.labels[divide:train_remainder]
-					validationSet_label_previous = self.labels[train_remainder:validate_remainder]
-					testSet_label_previous = self.labels[validate_remainder:step]
-					trainingSet_characteristic_previous = self.features[divide:train_remainder, :]
-					validationSet_characteristic_previous = self.features[train_remainder:validate_remainder, :]
-					testSet_characteristic_previous = self.features[validate_remainder:step, :]
-			else:
-				if (validation_percentage == 0):
-					trainingSet_label = self.labels[divide:train_remainder]
-					testSet_label = self.labels[train_remainder:step]
-					trainingSet_characteristic = self.features[divide:train_remainder, :]
-					testSet_characteristic = self.features[train_remainder:step, :]
-					trainingSet_outputs = np.concatenate((trainingSet_label_previous, trainingSet_label))
-					testSet_outputs = np.concatenate((testSet_label_previous, testSet_label))
-					trainingSet_inputs = np.concatenate((trainingSet_characteristic_previous, trainingSet_characteristic))
-					testSet_inputs = np.concatenate((testSet_characteristic_previous, testSet_characteristic))
-					trainingSet_label_previous = np.copy(trainingSet_outputs)
-					testSet_label_previous = np.copy(testSet_outputs)
-					trainingSet_characteristic_previous = np.copy(trainingSet_inputs)
-					testSet_characteristic_previous = np.copy(testSet_inputs)
-				else:
-					trainingSet_label = self.labels[divide:train_remainder]
-					validationSet_label = self.labels[train_remainder:validate_remainder]
-					testSet_label = self.labels[validate_remainder:step]
-					trainingSet_characteristic = self.features[divide:train_remainder, :]
-					validationSet_characteristic = self.features[train_remainder:validate_remainder, :]
-					testSet_characteristic = self.features[validate_remainder:step, :]
-					trainingSet_outputs = np.concatenate((trainingSet_label_previous, trainingSet_label))
-					validationSet_outputs = np.concatenate((validationSet_label_previous, validationSet_label))
-					testSet_outputs = np.concatenate((testSet_label_previous, testSet_label))
-					trainingSet_inputs = np.concatenate((trainingSet_characteristic_previous, trainingSet_characteristic))
-					validationSet_inputs = np.concatenate((validationSet_characteristic_previous, validationSet_characteristic))
-					testSet_inputs = np.concatenate((testSet_characteristic_previous, testSet_characteristic))
-					trainingSet_label_previous = np.copy(trainingSet_outputs)
-					validationSet_label_previous = np.copy(validationSet_outputs)
-					testSet_label_previous = np.copy(testSet_outputs)
-					trainingSet_characteristic_previous = np.copy(trainingSet_inputs)
-					validationSet_characteristic_previous = np.copy(validationSet_inputs)
-					testSet_characteristic_previous = np.copy(testSet_inputs)
-					self.validation_inputs = np.copy(validationSet_inputs)
-					self.validation_outputs = np.copy(validationSet_outputs)
-
-		self.features = np.copy(trainingSet_inputs)
-		self.labels = np.copy(trainingSet_outputs)
-		self.test_inputs = np.copy(testSet_inputs)
-		self.test_outputs = np.copy(testSet_outputs)
-		self.indicator = 1
+			self.splitter(divide, validation_percentage, train_remainder, validate_remainder, step, index)
 
 
 	def feed_forward(self, sample):
@@ -273,5 +278,5 @@ class Artificial_Neural_Network(object):
 		plt.plot(episodes, self.cost, color = "blue", linewidth = 1)
 		plt.xlabel('Episode')
 		plt.ylabel('Total square error per episode')
-		plt.savefig('accumulated_square_errors_over_each_epoch.png', bbox_inches = "tight", dpi = 200)    
+		plt.savefig('accumulated_square_errors_over_each_epoch.png', dpi = 200)    
 		plt.show()
