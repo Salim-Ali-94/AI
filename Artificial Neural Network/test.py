@@ -24,6 +24,7 @@ def learn(inputs, outputs, hyper_parameters, learning_rate, episodes, training_d
 	ANN.tester()
 	ANN.plotter()
 
+	
 if __name__ == "__main__":
 
 	episodes, learning_rate = 10000, 0.05
