@@ -11,7 +11,7 @@ The optimizer often gets stuck in a local minimum, the error plateaus to a non-z
 
 
 
-References:
+\nReferences:
 
 [1] Python Machine Learning (Sebastian Raschka, chapter 2, pg. 17 - 30)
 
