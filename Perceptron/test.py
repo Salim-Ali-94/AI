@@ -29,7 +29,7 @@ def predict(inputs, outputs, learning_rate, episodes, training_data_percent, new
 
     return neuron
 
-def plot(neuron, new_point):
+def plot_results(neuron, new_point):
 
     minimum_input = 0.9*min(min(neuron.features[:, 0]), min(neuron.test_inputs[:, 0]))
     maximum_input = 1.1*max(max(neuron.features[:, 0]), max(neuron.test_inputs[:, 0]))
@@ -71,4 +71,4 @@ if __name__ == "__main__":
     new_point = np.array([5.31, 3.76])
     x, y = initialize()
     node = predict(x, y, learning_rate, episodes, training_data_percent, new_point)
-    plot(node, new_point)
+    plot_results(node, new_point)
