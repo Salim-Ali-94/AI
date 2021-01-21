@@ -21,7 +21,7 @@ class Perceptron(object):
 		self.cost = []
 
 
-	def splitter(self, percentage):
+	def partition(self, percentage):
 
 		factor = percentage / 100
 		total = len(self.labels)
@@ -69,7 +69,7 @@ class Perceptron(object):
 			Error = 0
 
 
-	def tester(self, data = None, target = None):
+	def test(self, data = None, target = None):
 
 		miss_classification = 0
 		sucessful_classification = 0
@@ -106,7 +106,7 @@ class Perceptron(object):
 			      "dataset\n\n".format(sucessful_classification, miss_classification))
 
 
-	def plotter(self):
+	def plot(self):
 
 		episodes = range(1, self.epochs + 1)
 		plt.figure()
