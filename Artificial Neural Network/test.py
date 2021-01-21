@@ -21,8 +21,8 @@ def learn(inputs, outputs, hyper_parameters, learning_rate, episodes, training_d
 	ANN = network.Artificial_Neural_Network(inputs, outputs, hyper_parameters, learning_rate, episodes)
 	ANN.partition(training_data_percent, 0)
 	ANN.train()
-	ANN.tester()
-	ANN.plotter()
+	ANN.test()
+	ANN.plot()
 
 	
 if __name__ == "__main__":
