@@ -17,9 +17,9 @@ def initialize():
 def predict(inputs, outputs, learning_rate, episodes, training_data_percent, new_point):
 
     neuron = perceptron.Perceptron(inputs, outputs, learning_rate, episodes)
-    neuron.splitter(training_data_percent)
+    neuron.partition(training_data_percent)
     neuron.train()
-    neuron.tester()
+    neuron.test()
     label = int(neuron.classifier(new_point))
 
     if (label == 0):
@@ -40,7 +40,7 @@ def plot_results(neuron, new_point):
     total = neuron.features.shape[0]
     half = total // 2
 
-    neuron.plotter()
+    neuron.plot()
     plt.figure()
     axis = plt.axes(facecolor = "#E6E6E6")
     axis.set_axisbelow(True)
