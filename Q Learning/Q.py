@@ -172,7 +172,6 @@ class QAgent(object):
 
 	def plot(self):
 
-		size = len(self.profit)
 		episodes = range(1, self.epochs + 1, 100)
 		plt.figure()
 		axis = plt.axes(facecolor = "#E6E6E6")
