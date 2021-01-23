@@ -66,7 +66,7 @@ class QAgent(object):
 				if (entry == 0):
 					minimum[position] = element
 					maximum[position] = element
-				if (entry > 0):
+				elif (entry > 0):
 					if (element > maximum[position]):
 						maximum[position] = element
 					if (element < minimum[position]):
