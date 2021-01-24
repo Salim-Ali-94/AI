@@ -18,7 +18,7 @@ def initialize():
 
 def learn(inputs, outputs, hyper_parameters, learning_rate, episodes, training_data_percent):
 
-	ANN = network.Artificial_Neural_Network(inputs, outputs, hyper_parameters, learning_rate, episodes)
+	ANN = network.ArtificialNeuralNetwork(inputs, outputs, hyper_parameters, learning_rate, episodes)
 	ANN.partition(training_data_percent, 0)
 	ANN.train()
 	ANN.test()
