@@ -8,7 +8,7 @@ class QAgent(object):
 
 	Q = lambda self, reward, state, action, future_state: (1 - self.alpha)*self.q[state][action] + self.alpha*(reward + self.gamma*np.max(self.q[future_state]))
 
-	def __init__(self, system, sections, maximum_steps, epochs, learning_rate, discount_rate, exploration_rate, decay_rate):
+	def __init__(self, system, sections, maximum_steps, epochs, learning_rate, discount_rate, exploration_rate, decay_rate, indicator):
 
 		self.environment = gym.make(system)
 		self.environment.reset()
@@ -26,7 +26,12 @@ class QAgent(object):
 		self.q = np.random.uniform(-1, 1, size)
 		self.observation_space = []
 		self.profit = []
-		minimum, maximum = self.aggregator()
+
+		if (indicator == 1):
+			minimum, maximum = self.aggregator()
+		elif (indicator == 0):
+			minimum = self.environment.observation_space.low
+			maximum = self.environment.observation_space.high
 
 		for state in range(self.size_observations):
 
@@ -130,45 +135,6 @@ class QAgent(object):
 				self.profit.append(average)
 
 		self.environment.close()
-
-
-	def test(self):
-
-		trials, total = 100, 0
-		failed, passed = 0, 0
-
-		for episode in range(trials):
-
-			observation = self.environment.reset()
-			state = self.sampler(observation)
-			done, score = False, 0
-
-			while not done:
-
-				self.environment.render()
-				action = np.argmax(self.q[state])
-				observation, reward, done, information = self.environment.step(action)
-				future_state = self.sampler(observation)
-				state = future_state
-				score += reward
-
-			if (score >= 195):
-				passed += 1
-			elif (score < 195):
-				failed += 1
-
-			print("Episode:", episode)
-			print("Score:", score, "\n")
-			total += score
-			
-		self.environment.close()
-
-		if (passed == 1):
-			print("The agent sucessfully passed {} trial and failed {} attempts, with an average score of {}.\n".format(passed, failed, total / 100))
-		elif (failed == 1):
-			print("The agent sucessfully passed {} trials and failed {} attempt, with an average score of {}.\n".format(passed, failed, total / 100))
-		else:
-			print("The agent sucessfully passed {} trials and failed {} attempts, with an average score of {}.\n".format(passed, failed, total / 100))
 
 
 	def plot(self):
