@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 plt.rcParams["font.family"] = "Arial"
 
 
-class Artificial_Neural_Network(object):
+class ArtificialNeuralNetwork(object):
 
 	normalize = lambda self, data: (data - data.min()) / (data.max() - data.min())
 	activation = lambda self, weights, bias, activity, function, derivative: function(activity.dot(weights) + bias, derivative)
@@ -203,7 +203,7 @@ class Artificial_Neural_Network(object):
 					error += ((activity[-1] - self.labels[example])[0])**2 / 2
 
 			print("Episode:", episode + 1) 
-			print("Error:", error, "\n\n")
+			print("Error:", error, "\n")
 			self.cost.append(error)
 			error = 0
 
@@ -250,11 +250,11 @@ class Artificial_Neural_Network(object):
 		if (miss_classification == 1):
 			print("The classifier correctly labeled {} input samples "\
 			      "and incorrectly labeled {} sample from the test "\
-			      "dataset\n\n".format(sucessful_classification, miss_classification))
+			      "dataset\n".format(sucessful_classification, miss_classification))
 		else:
 			print("The classifier correctly labeled {} input samples "\
 			      "and incorrectly labeled {} samples from the test "\
-			      "dataset\n\n".format(sucessful_classification, miss_classification))
+			      "dataset\n".format(sucessful_classification, miss_classification))
 
 
 	def plot(self):
