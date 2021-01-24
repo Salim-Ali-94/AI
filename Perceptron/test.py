@@ -64,6 +64,7 @@ def plot_results(neuron, new_point):
     plt.savefig('classifier_results.png', dpi = 200)
     plt.show()
 
+    
 if __name__ == "__main__":
 
     episodes, learning_rate = 500, 0.1
