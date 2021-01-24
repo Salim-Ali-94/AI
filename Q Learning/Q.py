@@ -134,7 +134,7 @@ class QAgent(object):
 
 	def test(self):
 
-		trials = 100
+		trials, total = 100, 0
 		failed, passed = 0, 0
 
 		for episode in range(trials):
@@ -159,15 +159,16 @@ class QAgent(object):
 
 			print("Episode:", episode)
 			print("Score:", score, "\n")
-
+			total += score
+			
 		self.environment.close()
 
 		if (passed == 1):
-			print("The agent sucessfully passed {} trial and failed {} attempts.\n".format(passed, failed))
+			print("The agent sucessfully passed {} trial and failed {} attempts, with an average score of {}.\n".format(passed, failed, total / 100))
 		elif (failed == 1):
-			print("The agent sucessfully passed {} trials and failed {} attempt.\n".format(passed, failed))
+			print("The agent sucessfully passed {} trials and failed {} attempt, with an average score of {}.\n".format(passed, failed, total / 100))
 		else:
-			print("The agent sucessfully passed {} trials and failed {} attempts.\n".format(passed, failed))
+			print("The agent sucessfully passed {} trials and failed {} attempts, with an average score of {}.\n".format(passed, failed, total / 100))
 
 
 	def plot(self):
