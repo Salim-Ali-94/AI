@@ -19,6 +19,10 @@ class ArtificialNeuralNetwork(object):
 		self.epochs = epochs
 		self.indicator = 0
 		self.cost = []
+		self.curator()
+
+
+	def curator(self):
 
 		for index in range(self.layers - 1):
 
