@@ -26,6 +26,10 @@ class QAgent(object):
 		self.q = np.random.uniform(-1, 1, size)
 		self.observation_space = []
 		self.profit = []
+		self.ADC(indicator)
+
+
+	def ADC(self, indicator):
 
 		if (indicator == 1):
 			minimum, maximum = self.aggregator()
