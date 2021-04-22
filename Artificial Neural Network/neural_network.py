@@ -19,10 +19,10 @@ class ArtificialNeuralNetwork(object):
 		self.epochs = epochs
 		self.indicator = 0
 		self.cost = []
-		self.collector()
+		self.collect()
 
 
-	def collector(self):
+	def collect(self):
 
 		for index in range(self.layers - 1):
 
