@@ -13,7 +13,6 @@ def initialize():
 	labels = np.where(labels == 'virginica', 0.5, labels)
 	labels = np.copy(labels[np.newaxis].T)
 	features = data.iloc[0:150, 0:4].values
-
 	return features, labels
 
 def learn(inputs, outputs, hyper_parameters, learning_rate, episodes, training_data_percent):
