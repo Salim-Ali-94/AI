@@ -40,7 +40,6 @@ class Perceptron(object):
 		testSet_characteristicB = self.features[remainder:total, :]
 		trainingSet_inputs = np.concatenate((trainingSet_characteristicA, trainingSet_characteristicB))
 		testSet_inputs = np.concatenate((testSet_characteristicA, testSet_characteristicB))
-
 		self.features = np.copy(trainingSet_inputs)
 		self.labels = np.copy(trainingSet_outputs)
 		self.test_inputs = np.copy(testSet_inputs)
@@ -80,27 +79,24 @@ class Perceptron(object):
 
 				output = int(self.classifier(data[index]))
 
-				if (output == target[index]):
-					sucessful_classification += 1
-				elif (output != target[index]):
-					miss_classification += 1
+				if (output == target[index]): sucessful_classification += 1
+				elif (output != target[index]): miss_classification += 1
 
 		elif (self.indicator != 0):
 
 			for index in range(self.test_inputs.shape[0]):
 
 				output = int(self.classifier(self.test_inputs[index]))
-
-				if (output == self.test_outputs[index]):
-					sucessful_classification += 1
-				elif (output != self.test_outputs[index]):
-					miss_classification += 1
+				if (output == self.test_outputs[index]): sucessful_classification += 1
+				elif (output != self.test_outputs[index]): miss_classification += 1
 
 		if (miss_classification == 1):
+			
 			print("The classifier correctly labeled {} input samples "\
 			      "and incorrectly labeled {} sample from the test "\
 			      "dataset\n\n".format(sucessful_classification, miss_classification))
 		else:
+			
 			print("The classifier correctly labeled {} input samples "\
 			      "and incorrectly labeled {} samples from the test "\
 			      "dataset\n\n".format(sucessful_classification, miss_classification))
@@ -113,10 +109,7 @@ class Perceptron(object):
 		axis = plt.axes(facecolor = "#E6E6E6")
 		axis.set_axisbelow(True)
 		plt.grid(color = "w", linestyle = "solid")
-
-		for spine in axis.spines.values():
-			spine.set_visible(False)
-
+		for spine in axis.spines.values(): spine.set_visible(False)
 		plt.tick_params(axis = "x", which = "both", bottom = False, top = False)
 		plt.tick_params(axis = "y", which = "both", left = False, right = False)
 		plt.plot(episodes, self.cost, color = "blue", linewidth = 1)
