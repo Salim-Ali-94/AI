@@ -11,7 +11,6 @@ def initialize():
     classes = data.iloc[0:100, 4].values
     classes = np.where(classes == 'setosa', 0, 1)
     characteristics = data.iloc[0:100, [0, 2]].values
-
     return characteristics, classes
 
 def predict(inputs, outputs, learning_rate, episodes, training_data_percent, new_point):
@@ -21,12 +20,8 @@ def predict(inputs, outputs, learning_rate, episodes, training_data_percent, new
     neuron.train()
     neuron.test()
     label = int(neuron.classifier(new_point))
-
-    if (label == 0):
-        print("The new flower belongs to the Setosa species\n")
-    elif (label == 1):
-        print("The new flower belongs to the Versicolor species\n")
-
+    if (label == 0): print("The new flower belongs to the Setosa species\n")
+    elif (label == 1): print("The new flower belongs to the Versicolor species\n")
     return neuron
 
 def plot_results(neuron, new_point):
@@ -39,16 +34,12 @@ def plot_results(neuron, new_point):
     y = -(neuron.weights[0] / neuron.weights[1])*x - neuron.bias / neuron.weights[1]
     total = neuron.features.shape[0]
     half = total // 2
-
     neuron.plot()
     plt.figure()
     axis = plt.axes(facecolor = "#E6E6E6")
     axis.set_axisbelow(True)
     plt.grid(color = "w", linestyle = "solid")
-
-    for spine in axis.spines.values():
-        spine.set_visible(False)
-
+    for spine in axis.spines.values(): spine.set_visible(False)
     plt.tick_params(axis = "x", which = "both", bottom = False, top = False)
     plt.tick_params(axis = "y", which = "both", left = False, right = False)
     plt.plot(x, y, color = "black", linewidth = 1, label = "Decision boundary")
