@@ -27,35 +27,27 @@ class ArtificialNeuralNetwork(object):
 		for index in range(self.layers - 1):
 
 			if (index == self.layers - 2):
-				if (self.hyper_parameters[-1] == 1):
-					bias = np.random.uniform(-1, 1)
-				else:
-					bias = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
-			else:
-				bias = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
-			if (self.hyper_parameters[index] == 1):
-				weight = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
-			else:
-				weight = np.random.uniform(-1, 1, [self.hyper_parameters[index], self.hyper_parameters[index + 1]])
 
+				if (self.hyper_parameters[-1] == 1): bias = np.random.uniform(-1, 1)
+				else: bias = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
+					
+			else: bias = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
+			if (self.hyper_parameters[index] == 1): weight = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
+			else: weight = np.random.uniform(-1, 1, [self.hyper_parameters[index], self.hyper_parameters[index + 1]])
 			self.weights.append(weight)
 			self.biases.append(bias)
 
 
 	def sigmoid(self, x, derivative = False):
 
-		if (derivative == False):
-			return 1 / (1 + np.exp(-x.astype(float)))
-		elif (derivative == True):
-			return -np.exp(-x.astype(float)) / (1 + np.exp(-x.astype(float)))**2
+		if (derivative == False): return 1 / (1 + np.exp(-x.astype(float)))
+		elif (derivative == True): return -np.exp(-x.astype(float)) / (1 + np.exp(-x.astype(float)))**2
 
 
 	def hyperbolic_tangent(self, x, derivative = False):
 
-		if (derivative == False):
-			return np.tanh(x.astype(float))
-		elif (derivative == True):
-			return 1 / np.cosh(x.astype(float))**2
+		if (derivative == False): return np.tanh(x.astype(float))
+		elif (derivative == True): return 1 / np.cosh(x.astype(float))**2
 
 
 	def partition(self, training_percentage, validation_percentage = 0):
@@ -77,20 +69,27 @@ class ArtificialNeuralNetwork(object):
 			step = portion*(index + 1)
 
 			if (index == 0):
+				
 				if (validation_percentage == 0):
+
 					trainingSet_label_previous = self.labels[divide:train_remainder]
 					testSet_label_previous = self.labels[train_remainder:step]
 					trainingSet_characteristic_previous = self.features[divide:train_remainder, :]
 					testSet_characteristic_previous = self.features[train_remainder:step, :]
+					
 				else:
+					
 					trainingSet_label_previous = self.labels[divide:train_remainder]
 					validationSet_label_previous = self.labels[train_remainder:validate_remainder]
 					testSet_label_previous = self.labels[validate_remainder:step]
 					trainingSet_characteristic_previous = self.features[divide:train_remainder, :]
 					validationSet_characteristic_previous = self.features[train_remainder:validate_remainder, :]
 					testSet_characteristic_previous = self.features[validate_remainder:step, :]
+					
 			else:
+				
 				if (validation_percentage == 0):
+					
 					trainingSet_label = self.labels[divide:train_remainder]
 					testSet_label = self.labels[train_remainder:step]
 					trainingSet_characteristic = self.features[divide:train_remainder, :]
@@ -103,7 +102,9 @@ class ArtificialNeuralNetwork(object):
 					testSet_label_previous = np.copy(testSet_outputs)
 					trainingSet_characteristic_previous = np.copy(trainingSet_inputs)
 					testSet_characteristic_previous = np.copy(testSet_inputs)
+					
 				else:
+					
 					trainingSet_label = self.labels[divide:train_remainder]
 					validationSet_label = self.labels[train_remainder:validate_remainder]
 					testSet_label = self.labels[validate_remainder:step]
@@ -139,9 +140,11 @@ class ArtificialNeuralNetwork(object):
 		for layer in range(self.layers - 1):
 
 			if (layer == 0):
+				
 				activity = self.activation(self.weights[layer], self.biases[layer], self.features[sample], self.hyperbolic_tangent, False)
 				delta_activity = self.activation(self.weights[layer], self.biases[layer], self.features[sample], self.hyperbolic_tangent, True)
 			else:
+				
 				activity = self.activation(self.weights[layer], self.biases[layer], previous_activity, self.hyperbolic_tangent, False)
 				delta_activity = self.activation(self.weights[layer], self.biases[layer], previous_activity, self.hyperbolic_tangent, True)
 
@@ -160,21 +163,23 @@ class ArtificialNeuralNetwork(object):
 		for layer in range(self.layers - 2, -1, -1):
 
 			if (layer == self.layers - 2):
+				
 				error = activity[layer] - self.labels[sample]
 				delta = error*derivative[layer]
 			else:
-				if (len(delta) > 1):
-					delta = delta.dot(self.weights[layer + 1].T)*derivative[layer]
-				else:
-					delta = delta*self.weights[layer + 1].T*derivative[layer]
+				
+				if (len(delta) > 1): delta = delta.dot(self.weights[layer + 1].T)*derivative[layer]
+				else: delta = delta*self.weights[layer + 1].T*derivative[layer]
+					
 			if (delta.shape[0] == 1):
+				
 				if (isinstance(delta[0], np.ndarray)):
+					
 					delta = np.copy(delta[0])
 
 			Delta.append(delta)
 
 		Delta = list(reversed(Delta))
-
 		return Delta, activity
 
 
@@ -191,20 +196,23 @@ class ArtificialNeuralNetwork(object):
 				for layer in range(self.layers - 2, -1, -1):
 
 					if (layer == self.layers - 2):
+						
 						update = -delta[layer][np.newaxis].T*activity[layer - 1]
 						update = np.copy(update.T)
+						
 					elif (layer == 0):
+						
 						update = -self.features[example][np.newaxis].T*delta[layer]
+						
 					elif (layer > 0):
+						
 						update = -activity[layer - 1][np.newaxis].T*delta[layer]
 
 					self.weights[layer] = self.weights[layer] + self.learning_rate*update
 					self.biases[layer] = self.biases[layer] + self.learning_rate*delta[layer]
 
-				if (len(activity[-1]) > 1):
-					error += (sum(activity[-1] - self.labels[example]))**2 / 2
-				else:
-					error += ((activity[-1] - self.labels[example])[0])**2 / 2
+				if (len(activity[-1]) > 1): error += (sum(activity[-1] - self.labels[example]))**2 / 2
+				else: error += ((activity[-1] - self.labels[example])[0])**2 / 2
 
 			print("Episode:", episode + 1) 
 			print("Error:", error, "\n")
@@ -216,10 +224,8 @@ class ArtificialNeuralNetwork(object):
 
 		for layer in range(self.layers - 1):
 
-			if (layer == 0):
-				activity = self.activation(self.weights[layer], self.biases[layer], data, self.hyperbolic_tangent, False)
-			else:
-				activity = self.activation(self.weights[layer], self.biases[layer], activity, self.hyperbolic_tangent, False)
+			if (layer == 0): activity = self.activation(self.weights[layer], self.biases[layer], data, self.hyperbolic_tangent, False)
+			else: activity = self.activation(self.weights[layer], self.biases[layer], activity, self.hyperbolic_tangent, False)
 
 		return activity
 
@@ -234,28 +240,25 @@ class ArtificialNeuralNetwork(object):
 			for index in range(data.shape[0]):
 
 				output = np.round(self.classifier(data[index]), decimals = 1)
-
-				if (output == target[index]):
-					sucessful_classification += 1
-				elif (output != target[index]):
-					miss_classification += 1
+				if (output == target[index]): sucessful_classification += 1
+				elif (output != target[index]): miss_classification += 1
 
 		elif (self.indicator != 0):
 
 			for index in range(self.test_inputs.shape[0]):
 
 				output = np.round(self.classifier(self.test_inputs[index]), decimals = 1)
-
-				if (output == self.test_outputs[index]):
-					sucessful_classification += 1
-				elif (output != self.test_outputs[index]):
-					miss_classification += 1
+				if (output == self.test_outputs[index]): sucessful_classification += 1
+				elif (output != self.test_outputs[index]): miss_classification += 1
 
 		if (miss_classification == 1):
+			
 			print("The classifier correctly labeled {} input samples "\
 			      "and incorrectly labeled {} sample from the test "\
 			      "dataset\n".format(sucessful_classification, miss_classification))
+			
 		else:
+			
 			print("The classifier correctly labeled {} input samples "\
 			      "and incorrectly labeled {} samples from the test "\
 			      "dataset\n".format(sucessful_classification, miss_classification))
@@ -268,10 +271,7 @@ class ArtificialNeuralNetwork(object):
 		axis = plt.axes(facecolor = "#E6E6E6")
 		axis.set_axisbelow(True)
 		plt.grid(color = "w", linestyle = "solid")
-
-		for spine in axis.spines.values():
-			spine.set_visible(False)
-
+		for spine in axis.spines.values(): spine.set_visible(False)
 		plt.tick_params(axis = "x", which = "both", bottom = False, top = False)
 		plt.tick_params(axis = "y", which = "both", left = False, right = False)
 		plt.plot(episodes, self.cost, color = "blue", linewidth = 1)
