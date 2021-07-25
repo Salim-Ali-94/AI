@@ -22,9 +22,12 @@ def test(agent):
 			state = future_state
 
 		if (observation[0] >= 0.5):
+
 			passed += 1
 			condition = "Passed"
+			
 		elif (observation[0] < 0.5):
+			
 			failed += 1
 			condition = "Failed"
 
@@ -32,13 +35,9 @@ def test(agent):
 		print("Completion status:", condition, "\n")
 		
 	agent.environment.close()
-
-	if (passed == 1):
-		print("The agent sucessfully passed {} trial and failed {} attempts.\n".format(passed, failed))
-	elif (failed == 1):
-		print("The agent sucessfully passed {} trials and failed {} attempt.\n".format(passed, failed))
-	else:
-		print("The agent sucessfully passed {} trials and failed {} attempts.\n".format(passed, failed))
+	if (passed == 1): print("The agent sucessfully passed {} trial and failed {} attempts.\n".format(passed, failed))
+	elif (failed == 1): print("The agent sucessfully passed {} trials and failed {} attempt.\n".format(passed, failed))
+	else: print("The agent sucessfully passed {} trials and failed {} attempts.\n".format(passed, failed))
 
 
 if __name__ == "__main__":
