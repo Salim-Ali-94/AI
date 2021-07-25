@@ -31,11 +31,8 @@ class QAgent(object):
 
 	def ADC(self, indicator):
 
-		if (indicator == 1):
-			minimum, maximum = self.aggregator()
-		elif (indicator == 0):
-			minimum = self.environment.observation_space.low
-			maximum = self.environment.observation_space.high
+		if (indicator == 1): minimum, maximum = self.aggregator()
+		elif (indicator == 0): minimum, maximum = self.environment.observation_space.low, self.environment.observation_space.high
 
 		for state in range(self.size_observations):
 
@@ -73,13 +70,14 @@ class QAgent(object):
 				element = states[entry][position]
 
 				if (entry == 0):
+
 					minimum[position] = element
 					maximum[position] = element
+					
 				elif (entry > 0):
-					if (element > maximum[position]):
-						maximum[position] = element
-					if (element < minimum[position]):
-						minimum[position] = element
+					
+					if (element > maximum[position]): maximum[position] = element
+					if (element < minimum[position]): minimum[position] = element
 
 		return minimum, maximum
 
@@ -112,22 +110,15 @@ class QAgent(object):
 			for step in range(self.maximum_steps):
 
 				exploitation = np.random.uniform(0, 1)
-
-				if (exploitation > exploration):
-					action = np.argmax(self.q[state])
-				else:
-					action = self.environment.action_space.sample()
-	
+				if (exploitation > exploration): action = np.argmax(self.q[state])
+				else: action = self.environment.action_space.sample()
 				observation, reward, done, information = self.environment.step(action)
 				future_state = self.sampler(observation)
 				self.q[state][action] = self.Q(reward, state, action, future_state)
 				state = future_state
 				score += reward
-
-				if (episode%(checkpoint*10) == 0):
-					self.environment.render()
-				if done:
-					break
+				if (episode%(checkpoint*10) == 0): self.environment.render()
+				if done: break
 
 			print("Episode:", episode + 1)
 			print("Reward:", score, "\n")
@@ -135,6 +126,7 @@ class QAgent(object):
 			exploration = self.epsilon + (1 - self.epsilon)*np.exp(-self.beta*episode)
 
 			if (episode%checkpoint == 0):
+
 				average = sum(Reward[-checkpoint:]) / len(Reward[-checkpoint:])
 				self.profit.append(average)
 
@@ -148,10 +140,7 @@ class QAgent(object):
 		axis = plt.axes(facecolor = "#E6E6E6")
 		axis.set_axisbelow(True)
 		plt.grid(color = "w", linestyle = "solid")
-
-		for spine in axis.spines.values():
-			spine.set_visible(False)
-
+		for spine in axis.spines.values(): spine.set_visible(False)
 		plt.tick_params(axis = "x", which = "both", bottom = False, top = False)
 		plt.tick_params(axis = "y", which = "both", left = False, right = False)
 		plt.plot(episodes, self.profit, color = "blue", linewidth = 1)
