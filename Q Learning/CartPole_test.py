@@ -22,23 +22,16 @@ def test(agent):
 			state = future_state
 			score += reward
 
-		if (score >= 195):
-			passed += 1
-		elif (score < 195):
-			failed += 1
-
+		if (score >= 195): passed += 1
+		elif (score < 195): failed += 1
 		print("Episode:", episode + 1)
 		print("Score:", score, "\n")
 		total += score
 		
 	agent.environment.close()
-
-	if (passed == 1):
-		print("The agent sucessfully passed {} trial and failed {} attempts, with an average score of {}.\n".format(passed, failed, total / 100))
-	elif (failed == 1):
-		print("The agent sucessfully passed {} trials and failed {} attempt, with an average score of {}.\n".format(passed, failed, total / 100))
-	else:
-		print("The agent sucessfully passed {} trials and failed {} attempts, with an average score of {}.\n".format(passed, failed, total / 100))
+	if (passed == 1): print("The agent sucessfully passed {} trial and failed {} attempts, with an average score of {}.\n".format(passed, failed, total / 100))
+	elif (failed == 1): print("The agent sucessfully passed {} trials and failed {} attempt, with an average score of {}.\n".format(passed, failed, total / 100))
+	else: print("The agent sucessfully passed {} trials and failed {} attempts, with an average score of {}.\n".format(passed, failed, total / 100))
 
 
 if __name__ == "__main__":
