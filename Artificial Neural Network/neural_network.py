@@ -143,6 +143,7 @@ class ArtificialNeuralNetwork(object):
 				
 				activity = self.activation(self.weights[layer], self.biases[layer], self.features[sample], self.hyperbolic_tangent, False)
 				delta_activity = self.activation(self.weights[layer], self.biases[layer], self.features[sample], self.hyperbolic_tangent, True)
+				
 			else:
 				
 				activity = self.activation(self.weights[layer], self.biases[layer], previous_activity, self.hyperbolic_tangent, False)
@@ -166,6 +167,7 @@ class ArtificialNeuralNetwork(object):
 				
 				error = activity[layer] - self.labels[sample]
 				delta = error*derivative[layer]
+				
 			else:
 				
 				if (len(delta) > 1): delta = delta.dot(self.weights[layer + 1].T)*derivative[layer]
