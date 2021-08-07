@@ -31,7 +31,10 @@ class ArtificialNeuralNetwork(object):
 				if (self.hyper_parameters[-1] == 1): bias = np.random.uniform(-1, 1)
 				else: bias = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
 					
-			else: bias = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
+			else: 
+				
+				bias = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
+				
 			if (self.hyper_parameters[index] == 1): weight = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
 			else: weight = np.random.uniform(-1, 1, [self.hyper_parameters[index], self.hyper_parameters[index + 1]])
 			self.weights.append(weight)
