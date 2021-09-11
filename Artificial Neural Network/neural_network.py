@@ -166,16 +166,10 @@ class ArtificialNeuralNetwork(object):
 				if (len(delta) > 1): delta = delta.dot(self.weight[layer + 1].T)*derivative[layer]
 				else: delta = delta*self.weight[layer + 1].T*derivative[layer]
 					
-			if (delta.shape[0] == 1):
-				
-				if (isinstance(delta[0], np.ndarray)):
-					
-					delta = np.copy(delta[0])
-
+			if (delta.shape[0] == 1): delta = np.copy(delta[0]) if (isinstance(delta[0], np.ndarray)) else np.copy(delta)
 			gradient.append(delta)
 
-		gradient = list(reversed(gradient))
-		return gradient, activity
+		return list(reversed(gradient)), activity
 
 
 	def train(self):
