@@ -10,15 +10,13 @@ class ArtificialNeuralNetwork(object):
 
 	def __init__(self, features, labels, hyper_parameters, learning_rate = 0.1, epochs = 100):
 
+		self.indicator, self.cost = 0, []
 		self.weights, self.biases = [], []
+		self.labels, self.epochs = labels, epochs
 		self.hyper_parameters = hyper_parameters
 		self.learning_rate = learning_rate
 		self.features = self.normalize(features)
 		self.layers = len(self.hyper_parameters)
-		self.labels = labels
-		self.epochs = epochs
-		self.indicator = 0
-		self.cost = []
 		self.collect()
 
 
@@ -26,15 +24,8 @@ class ArtificialNeuralNetwork(object):
 
 		for index in range(self.layers - 1):
 
-			if (index == self.layers - 2):
-
-				if (self.hyper_parameters[-1] == 1): bias = np.random.uniform(-1, 1)
-				else: bias = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
-					
-			else: 
-				
-				bias = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
-				
+			if (index == self.layers - 2): bias = np.random.uniform(-1, 1) if (self.hyper_parameters[-1] == 1) else np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
+			else: bias = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
 			if (self.hyper_parameters[index] == 1): weight = np.random.uniform(-1, 1, self.hyper_parameters[index + 1])
 			else: weight = np.random.uniform(-1, 1, [self.hyper_parameters[index], self.hyper_parameters[index + 1]])
 			self.weights.append(weight)
@@ -138,30 +129,30 @@ class ArtificialNeuralNetwork(object):
 
 	def feed_forward(self, sample):
 
-		Activity, Derivative = [], []
+		output, gradient = [], []
 
 		for layer in range(self.layers - 1):
 
 			if (layer == 0):
 				
 				activity = self.activation(self.weights[layer], self.biases[layer], self.features[sample], self.hyperbolic_tangent, False)
-				delta_activity = self.activation(self.weights[layer], self.biases[layer], self.features[sample], self.hyperbolic_tangent, True)
+				derivative = self.activation(self.weights[layer], self.biases[layer], self.features[sample], self.hyperbolic_tangent, True)
 				
 			else:
 				
 				activity = self.activation(self.weights[layer], self.biases[layer], previous_activity, self.hyperbolic_tangent, False)
-				delta_activity = self.activation(self.weights[layer], self.biases[layer], previous_activity, self.hyperbolic_tangent, True)
+				derivative = self.activation(self.weights[layer], self.biases[layer], previous_activity, self.hyperbolic_tangent, True)
 
 			previous_activity = np.copy(activity)
-			Derivative.append(delta_activity)
-			Activity.append(activity)
+			gradient.append(derivative)
+			output.append(activity)
 
-		return Activity, Derivative
+		return output, gradient
 
 
 	def back_propagation(self, sample):
 
-		Delta = []
+		gradient = []
 		activity, derivative = self.feed_forward(sample)
 
 		for layer in range(self.layers - 2, -1, -1):
@@ -182,10 +173,10 @@ class ArtificialNeuralNetwork(object):
 					
 					delta = np.copy(delta[0])
 
-			Delta.append(delta)
+			gradient.append(delta)
 
-		Delta = list(reversed(Delta))
-		return Delta, activity
+		gradient = list(reversed(gradient))
+		return gradient, activity
 
 
 	def train(self):
@@ -200,19 +191,9 @@ class ArtificialNeuralNetwork(object):
 
 				for layer in range(self.layers - 2, -1, -1):
 
-					if (layer == self.layers - 2):
-						
-						update = -delta[layer][np.newaxis].T*activity[layer - 1]
-						update = np.copy(update.T)
-						
-					elif (layer == 0):
-						
-						update = -self.features[example][np.newaxis].T*delta[layer]
-						
-					elif (layer > 0):
-						
-						update = -activity[layer - 1][np.newaxis].T*delta[layer]
-
+					if (layer == self.layers - 2): update = (-delta[layer][np.newaxis].T*activity[layer - 1]).T
+					elif (layer == 0): update = -self.features[example][np.newaxis].T*delta[layer]
+					elif (layer > 0): update = -activity[layer - 1][np.newaxis].T*delta[layer]
 					self.weights[layer] = self.weights[layer] + self.learning_rate*update
 					self.biases[layer] = self.biases[layer] + self.learning_rate*delta[layer]
 
@@ -256,17 +237,9 @@ class ArtificialNeuralNetwork(object):
 				if (output == self.test_outputs[index]): sucessful_classification += 1
 				elif (output != self.test_outputs[index]): miss_classification += 1
 
-		if (miss_classification == 1):
-			
-			print("The classifier correctly labeled {} input samples "\
-			      "and incorrectly labeled {} sample from the test "\
-			      "dataset\n".format(sucessful_classification, miss_classification))
-			
-		else:
-			
-			print("The classifier correctly labeled {} input samples "\
-			      "and incorrectly labeled {} samples from the test "\
-			      "dataset\n".format(sucessful_classification, miss_classification))
+		if (miss_classification == 1): print(f"The classifier correctly labeled {sucessful_classification} input samples and incorrectly labeled {miss_classification} sample from the test dataset\n")
+		elif (sucessful_classification == 1): print(f"The classifier correctly labeled {sucessful_classification} input sample and incorrectly labeled {miss_classification} samples from the test dataset\n")
+		else: print(f"The classifier correctly labeled {sucessful_classification} input samples and incorrectly labeled {miss_classification} samples from the test dataset\n")
 
 
 	def plot(self):
