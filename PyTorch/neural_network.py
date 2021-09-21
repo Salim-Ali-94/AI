@@ -31,7 +31,8 @@ class ArtificialNeuralNetwork(NN.Module):
 		for index in range(depth):
 
 			self.network.add_module(f"layer {index + 1}", NN.Linear(nodes[index], nodes[index + 1]))
-			if (functions[index].lower().rstrip().lstrip() in self.activation): self.network.add_module(f"activity {index + 1}", self.function(self.activation[functions[index].lower().rstrip().lstrip()]))
+			if (type(functions[index]) != str): self.network.add_module(f"activity {index + 1}", self.function(self.activation[functions[index][0].lower().rstrip().lstrip()])) if ((functions[index][0].lower().rstrip().lstrip() in self.activation) & (functions[index][0].lower().rstrip().lstrip() != "")) else self.network.add_module(f"activity {index + 1}", self.function(self.activation["tanh"])), self.network.add_module(f"drop {index + 1}", torch.nn.Dropout(functions[index][1] / 100))
+			elif (functions[index].lower().rstrip().lstrip() in self.activation): self.network.add_module(f"activity {index + 1}", self.function(self.activation[functions[index].lower().rstrip().lstrip()]))
 			elif (functions[index].lower().rstrip().lstrip() != ""): self.network.add_module(f"activity {index + 1}", self.function(self.activation["tanh"]))
 
 
