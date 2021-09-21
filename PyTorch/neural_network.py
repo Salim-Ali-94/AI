@@ -201,4 +201,4 @@ def test(model, data, output):
 	if (incorrect == 1): print(f"Correctly labeled {correct} samples and incorrectly labeled {incorrect} sample")
 	elif (correct == 1): print(f"Correctly labeled {correct} sample and incorrectly labeled {incorrect} samples")
 	else: print(f"Correctly labeled {correct} samples and incorrectly labeled {incorrect} samples")
-	print("Accuracy: ", round(100*(correct / total), 2))
+	print("Accuracy:", round(100*(correct / total), 2))
