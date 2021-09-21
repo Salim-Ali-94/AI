@@ -12,7 +12,7 @@ if __name__ == "__main__":
 	X, y = network.extract("iris.csv", encoding, output, "species")
 	dimension = len(X[0])
 	neurons = (dimension, 10, 20, 20, 5, output)
-	trainer, tester, validater = network.partition(X, y, neurons[-1], batch, train_percent)
+	trainer, tester, validater = network.partition(X, y, output, batch, train_percent)
 	activity = ("relu", "relu", "relu", "relu", "")
 	cost = "crossentropy"
 	optimizer = "adam"
