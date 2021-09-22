@@ -124,7 +124,7 @@ def learn(trainer, neurons, functions, learning_rate, episodes, propagator, cost
 	for x, y in trainer: Y += [y[index].item() for index in range(len(y))]
 	labels = list(set(Y))
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-	if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & (functions[-1] == "softmax") | (functions[-1] == "logsoftmax")): functions[-1] = ""
+	if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1]): functions[-1] = ""
 	ANN = ArtificialNeuralNetwork(neurons, functions).to(device)
 	if (propagator.lower().rstrip().lstrip() in optimization): optimizer = algorithm(ANN, optimization[propagator.lower().rstrip().lstrip()], learning_rate)
 	else: optimizer = solver.Adam(ANN.parameters(), lr = learning_rate)
