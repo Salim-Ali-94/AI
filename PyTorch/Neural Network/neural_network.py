@@ -116,7 +116,7 @@ def partition(characteristic, category, output, batch, training_percentage, vali
 	return trainer, tester, validater
 
 
-def learn(trainer, neurons, functions, learning_rate, episodes, propagator, cost):
+def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator, show = True):
 
 	collect, score = [], []
 	accuracy, ratio = [], []
@@ -164,11 +164,14 @@ def learn(trainer, neurons, functions, learning_rate, episodes, propagator, cost
 
 		score.append(sum(collect) / len(collect))
 		accuracy.append(sum(ratio) / len(ratio))
-		print("Episode:", epoch + 1)
-		print("Error:", round(score[-1], 4))
-		print("Accuracy:", round(accuracy[-1], 4), "\n")
 		collect, ratio = [], []
 		correct, incorrect = 0, 0
+		
+		if (show == True): 
+			
+			print("\nEpisode:", epoch + 1)
+			print("Error:", round(score[-1], 4))
+			print("Accuracy:", round(accuracy[-1], 4))
 
 	return ANN, score, accuracy
 
