@@ -9,8 +9,7 @@ import neural_network as network
 
 if __name__ == "__main__":
 
-	batch = 32
-	train_percent = 80
+	batch, train_percent = 32, 80
 	X, y = network.extract("mnist", "MNIST")
 	Y = [element.item() for element in y]
 	output = len(list(set(Y)))
