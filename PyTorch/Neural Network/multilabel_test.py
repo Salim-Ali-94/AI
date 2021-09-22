@@ -15,7 +15,7 @@ if __name__ == "__main__":
 	activity = ("relu", "relu", "relu", "relu", "")
 	cost = "crossentropy"
 	optimizer = "adam"
-	model, error, accuracy = network.learn(trainer, neurons, activity, learning_rate, episodes, optimizer, cost)
+	model, error, accuracy = network.learn(trainer, neurons, activity, learning_rate, episodes, cost, optimizer)
 	network.plot(error, "forestgreen", "accumulated_errors_over_each_epoch_multilabel_classification", "Episode", "Error")
 	network.plot(accuracy, "mediumvioletred", "accuracy_over_each_epoch_multilabel_classification", "Episode", "Learning accuracy")
 	network.test(model, tester, output)
