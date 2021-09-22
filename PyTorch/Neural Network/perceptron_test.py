@@ -3,8 +3,7 @@ import neural_network as network
 
 if __name__ == "__main__":
 
-	output = 1
-	batch = 50
+	batch, output = 50, 1
 	train_percent = 80
 	episodes = int(1e3)
 	learning_rate = 1e-1
