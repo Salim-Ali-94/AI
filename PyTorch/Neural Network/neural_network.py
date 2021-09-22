@@ -24,7 +24,7 @@ normalize = lambda data: (data - data.min()) / (data.max() - data.min())
 class ArtificialNeuralNetwork(NN.Module):
 
 	activation = {"relu": "ReLU", "tanh": "Tanh", "sigmoid": "Sigmoid", "softmax": "Softmax", "logsoftmax": "LogSoftmax"}
-	function = lambda self, transform: getattr(torch.nn, transform)(dim = 1) if ((transform == "Softmax") | (transform == "LogSoftmax")) else getattr(torch.nn, transform)()
+	function = lambda self, transform: getattr(torch.nn, transform)(dim = 1) if ("Softmax" in transform) else getattr(torch.nn, transform)()
 	forward = lambda self, data: self.network(data)
 
 	def __init__(self, nodes, functions):
@@ -124,7 +124,7 @@ def learn(trainer, neurons, functions, learning_rate, episodes, propagator, cost
 	for x, y in trainer: Y += [y[index].item() for index in range(len(y))]
 	labels = list(set(Y))
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-	if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1]): functions[-1] = ""
+	if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1])): functions[-1] = ""
 	ANN = ArtificialNeuralNetwork(neurons, functions).to(device)
 	if (propagator.lower().rstrip().lstrip() in optimization): optimizer = algorithm(ANN, optimization[propagator.lower().rstrip().lstrip()], learning_rate)
 	else: optimizer = solver.Adam(ANN.parameters(), lr = learning_rate)
