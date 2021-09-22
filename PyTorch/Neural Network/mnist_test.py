@@ -1,9 +1,3 @@
-import torch
-import torchvision.transforms as transforms
-from torch.utils.data import DataLoader as loader
-from torch.utils.data import TensorDataset as group
-from sklearn.model_selection import train_test_split as split
-import torchvision.datasets as datasets
 import neural_network as network
 
 
