@@ -15,7 +15,7 @@ if __name__ == "__main__":
 	activity = ("sigmoid", )
 	cost = "mse"
 	optimizer = "adam"
-	model, error, accuracy = network.learn(trainer, neurons, activity, learning_rate, episodes, optimizer, cost)
+	model, error, accuracy = network.learn(trainer, neurons, activity, learning_rate, episodes, cost, optimizer)
 	network.plot(error, "forestgreen", "accumulated_error_over_each_epoch_binary_classification", "Episode", "Error")
 	network.plot(accuracy, "mediumvioletred", "accuracy_over_each_epoch_binary_classification", "Episode", "Learning accuracy")
 	network.test(model, tester, output)
