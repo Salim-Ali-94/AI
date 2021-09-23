@@ -156,7 +156,7 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 
 				elif (neurons[-1] == 1): 
 
-					if (min(labels, key = lambda x: abs(x - prediction[index].item())) == y[index].item()): correct += 1
+					if (min(labels, key = lambda value: abs(value - prediction[index].item())) == y[index].item()): correct += 1
 					else: incorrect += 1
 
 			total = correct + incorrect
@@ -217,7 +217,7 @@ def test(model, data, output):
 
 				elif (output == 1): 
 
-					if (min(labels, key = lambda x: abs(x - prediction[index].item())) == y[index].item()): correct += 1
+					if (min(labels, key = lambda value: abs(value - prediction[index].item())) == y[index].item()): correct += 1
 					else: incorrect += 1
 
 	total = correct + incorrect
