@@ -166,7 +166,6 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 		score.append(sum(collect) / len(collect))
 		accuracy.append(sum(ratio) / len(ratio))
 		collect, ratio = [], []
-		correct, incorrect = 0, 0
 		
 		if (show == True): 
 			
