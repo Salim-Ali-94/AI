@@ -128,8 +128,8 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 	ANN = ArtificialNeuralNetwork(neurons, functions).to(device)
 	if (propagator.lower().rstrip().lstrip() in optimization): optimizer = algorithm(ANN, optimization[propagator.lower().rstrip().lstrip()], learning_rate)
 	else: optimizer = solver.Adam(ANN.parameters(), lr = learning_rate)
-	if callable(cost): error = cost # hasattr(cost, '__call__')
-	elif (cost.lower().rstrip().lstrip() in utility): error = criterion(utility[cost.lower().rstrip().lstrip()])
+	if callable(cost): error = cost
+	elif cost.lower().rstrip().lstrip() in utility: error = criterion(utility[cost.lower().rstrip().lstrip()])
 	elif (neurons[-1] > 1): error = NN.CrossEntropyLoss()
 	else: error = NN.MSELoss()
 	ANN.train()
