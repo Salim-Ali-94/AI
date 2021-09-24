@@ -43,7 +43,7 @@ class ArtificialNeuralNetwork(NN.Module):
 
 
 
-def extract(file, directory = None, encoding = None, output = None, label = None, flag = None):
+def extract(file, directory = None, encoding = None, output = None, flag = None):
 
 	if (directory == None):
 
@@ -51,8 +51,7 @@ def extract(file, directory = None, encoding = None, output = None, label = None
 		data = pd.read_csv(f"{file}", header = ticket)
 		dimension = len(data.iloc[0]) - 1
 		mapping = {encoding[index][0]: encoding[index][1] for index in range(len(encoding))}
-		if (label != None): data[f"{label}"] = data[f"{label}"].apply(lambda index: mapping[index])
-		else: data.iloc[:, -1] = data.iloc[:, -1].apply(lambda index: mapping[index])
+		data.iloc[:, -1] = data.iloc[:, -1].apply(lambda index: mapping[index])
 		X = normalize(data.iloc[:, 0:dimension].values)
 		if (output > 1): y = data.iloc[:, -1].values
 		else: y = data.iloc[:, -1:].values
