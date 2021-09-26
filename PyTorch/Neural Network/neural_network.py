@@ -54,15 +54,15 @@ class ConvolutionalNeuralNetwork(NN.Module):
 		
 		for index in range(depth):
 
-			self.network.add_module(f"convolution {index + 1}", NN.Conv2d(convolutions[index], convolutions[index + 1], kernel, stride, padding))
+			self.network.add_module(f"convolution {index + 1}", NN.Conv2d(convolutions[index], convolutions[index + 1], kernel[index], stride[index], padding[index]))
 			self.network.add_module(f"pool {index + 1}", NN.MaxPool2d(factor))
 			if (functions[index].lower().rstrip().lstrip() in activation): self.network.add_module(f"activation {index + 1}", function(activation[functions[index].lower().rstrip().lstrip()]))
 			elif (functions[index].lower().rstrip().lstrip() != ""): self.network.add_module(f"activation {index + 1}", function(activation["relu"]))
-			if (index == 0): size = self.dimension(height, kernel, padding, stride) // factor
-			else: size = self.dimension(size, kernel, padding, stride) // factor
+			if (index == 0): size = self.dimension(height, kernel[index], padding[index], stride[index]) // factor
+			else: size = self.dimension(size, kernel[index], padding[index], stride[index]) // factor
 
 		self.network.add_module(f"transform", NN.Flatten())
-		size = convolutions[-1]*int(self.dimension(size, 1, 0, stride)*self.dimension(size, 1, 0, stride))
+		size = convolutions[-1]*int(self.dimension(size, 1, 0, 1)*self.dimension(size, 1, 0, 1))
 		nodes.insert(0, size)
 		ANN = ArtificialNeuralNetwork(nodes, functions[depth:], self.network)
 
