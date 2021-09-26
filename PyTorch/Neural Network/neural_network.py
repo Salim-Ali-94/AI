@@ -13,9 +13,11 @@ import matplotlib.pyplot as plt
 plt.rcParams["font.family"] = "Arial"
 
 
+activation = {"relu": "ReLU", "tanh": "Tanh", "sigmoid": "Sigmoid", "softmax": "Softmax", "logsoftmax": "LogSoftmax"}
 utility = {"nll": "NLLLoss", "bce": "BCELoss", "mse": "MSELoss", "crossentropy": "CrossEntropyLoss"}
 optimization = {"adam": "Adam", "rms": "RMSProp", "sgd": "SGD"}
 dataset = {"mnist": "MNIST", "cifar": "CIFAR10", "celeb": "CelebA", "fashion": "FashionMNIST"}
+function = lambda transform: getattr(torch.nn, transform)(dim = 1) if ("Softmax" in transform) else getattr(torch.nn, transform)()
 criterion = lambda score: getattr(torch.nn, score)()
 algorithm = lambda model, method, learning_rate: getattr(torch.optim, method)(model.parameters(), lr = learning_rate)
 library = lambda family, folder: getattr(torchvision.datasets, family)(root = folder, transform = transformation.ToTensor(), download = True)
@@ -23,22 +25,46 @@ normalize = lambda data: (data - data.min()) / (data.max() - data.min())
 
 class ArtificialNeuralNetwork(NN.Module):
 
-	activation = {"relu": "ReLU", "tanh": "Tanh", "sigmoid": "Sigmoid", "softmax": "Softmax", "logsoftmax": "LogSoftmax"}
-	function = lambda self, transform: getattr(torch.nn, transform)(dim = 1) if ("Softmax" in transform) else getattr(torch.nn, transform)()
 	forward = lambda self, data: self.network(data)
 
-	def __init__(self, nodes, functions):
+	def __init__(self, nodes, functions, system = None):
 
 		super().__init__()
 		depth = len(nodes) - 1
-		self.network = NN.Sequential()
+		self.network = system if (system != None) else NN.Sequential()
 
 		for index in range(depth):
 
 			self.network.add_module(f"layer {index + 1}", NN.Linear(nodes[index], nodes[index + 1]))
-			if (type(functions[index]) != str): self.network.add_module(f"activity {index + 1}", self.function(self.activation[functions[index][0].lower().rstrip().lstrip()])) if ((functions[index][0].lower().rstrip().lstrip() in self.activation) & (functions[index][0].lower().rstrip().lstrip() != "")) else self.network.add_module(f"activity {index + 1}", self.function(self.activation["tanh"])), self.network.add_module(f"drop {index + 1}", torch.nn.Dropout(functions[index][1] / 100))
-			elif (functions[index].lower().rstrip().lstrip() in self.activation): self.network.add_module(f"activity {index + 1}", self.function(self.activation[functions[index].lower().rstrip().lstrip()]))
-			elif (functions[index].lower().rstrip().lstrip() != ""): self.network.add_module(f"activity {index + 1}", self.function(self.activation["tanh"]))
+			if (type(functions[index]) != str): self.network.add_module(f"activity {index + 1}", function(activation[functions[index][0].lower().rstrip().lstrip()])) if ((functions[index][0].lower().rstrip().lstrip() in activation) & (functions[index][0].lower().rstrip().lstrip() != "")) else self.network.add_module(f"activity {index + 1}", function(activation["tanh"])), self.network.add_module(f"drop {index + 1}", torch.nn.Dropout(functions[index][1] / 100))
+			elif (functions[index].lower().rstrip().lstrip() in activation): self.network.add_module(f"activity {index + 1}", function(activation[functions[index].lower().rstrip().lstrip()]))
+			elif (functions[index].lower().rstrip().lstrip() != ""): self.network.add_module(f"activity {index + 1}", function(activation["tanh"]))
+
+
+class ConvolutionalNeuralNetwork(NN.Module):
+
+	dimension = lambda self, pixels, kernel, padding = 1, stride = 1: np.floor((pixels + 2*padding - kernel) / stride) + 1
+	forward = lambda self, data: self.network(data)
+
+	def __init__(self, height, kernel, stride, padding, factor, convolutions, nodes, functions):
+
+		super().__init__()
+		depth = len(convolutions) - 1
+		self.network = NN.Sequential()
+		
+		for index in range(depth):
+
+			self.network.add_module(f"convolution {index + 1}", NN.Conv2d(convolutions[index], convolutions[index + 1], kernel, stride, padding))
+			self.network.add_module(f"pool {index + 1}", NN.MaxPool2d(factor))
+			if (functions[index].lower().rstrip().lstrip() in activation): self.network.add_module(f"activation {index + 1}", function(activation[functions[index].lower().rstrip().lstrip()]))
+			elif (functions[index].lower().rstrip().lstrip() != ""): self.network.add_module(f"activation {index + 1}", function(activation["relu"]))
+			if (index == 0): size = self.dimension(height, kernel, padding, stride) // factor
+			else: size = self.dimension(size, kernel, padding, stride) // factor
+
+		self.network.add_module(f"transform", NN.Flatten())
+		size = convolutions[-1]*int(self.dimension(size, 1, 0, stride)*self.dimension(size, 1, 0, stride))
+		nodes.insert(0, size)
+		ANN = ArtificialNeuralNetwork(nodes, functions[depth:], self.network)
 
 
 
@@ -58,7 +84,7 @@ def extract(file, directory = None, encoding = None, output = None, label = None
 		else: y = data.iloc[:, -1:].values
 		if (flag != None): y = normalize(y)
 
-	else: 
+	else:
 
 		X, Y = [], []
 		data = library(dataset[file.lower().rstrip().lstrip()], directory) if (file.lower().rstrip().lstrip() in dataset) else library(dataset["mnist"], directory)
@@ -116,7 +142,7 @@ def partition(characteristic, category, output, batch, training_percentage, vali
 	return trainer, tester, validater
 
 
-def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator, show = True):
+def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator, height = 0, kernel = 0, stride = 0, padding = 0, window = 0, convolutions = [], show = True):
 
 	collect, score = [], []
 	accuracy, ratio = [], []
@@ -125,23 +151,23 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 	labels = list(set(Y))
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 	if (type(cost) == str): functions[-1] = "" if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1])) else functions[-1]
-	ANN = ArtificialNeuralNetwork(neurons, functions).to(device)
-	if (propagator.lower().rstrip().lstrip() in optimization): optimizer = algorithm(ANN, optimization[propagator.lower().rstrip().lstrip()], learning_rate)
-	else: optimizer = solver.Adam(ANN.parameters(), lr = learning_rate)
+	model = ArtificialNeuralNetwork(neurons, functions, ConvolutionalNeuralNetwork(height, kernel, stride, padding, window, convolutions, neurons, functions)).to(device) if (height != 0) else ArtificialNeuralNetwork(neurons, functions, None).to(device)
+	if (propagator.lower().rstrip().lstrip() in optimization): optimizer = algorithm(model, optimization[propagator.lower().rstrip().lstrip()], learning_rate)
+	else: optimizer = solver.Adam(model.parameters(), lr = learning_rate)
 	if callable(cost): error = cost
-	elif cost.lower().rstrip().lstrip() in utility: error = criterion(utility[cost.lower().rstrip().lstrip()])
+	elif (cost.lower().rstrip().lstrip() in utility): error = criterion(utility[cost.lower().rstrip().lstrip()])
 	elif (neurons[-1] > 1): error = NN.CrossEntropyLoss()
 	else: error = NN.MSELoss()
-	ANN.train()
+	model.train()
 
 	for epoch in range(episodes):
 
 		for x, y in trainer:
 
 			x, y = x.to(device), y.to(device)
-			if (len(x.shape) > 2): x = x.reshape(x.shape[0], -1)
+			if ((x.shape.numel() > 2) & (height == 0)): x = x.reshape(x.shape[0], -1)
 			optimizer.zero_grad()
-			prediction = ANN(x)
+			prediction = model(x)
 			loss = error(prediction, y)
 			loss.backward()
 			optimizer.step()
@@ -156,7 +182,7 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 
 				elif (neurons[-1] == 1): 
 
-					if (min(labels, key = lambda value: abs(value - prediction[index].item())) == y[index].item()): correct += 1
+					if (min(labels, key = lambda x: abs(x - prediction[index].item())) == y[index].item()): correct += 1
 					else: incorrect += 1
 
 			total = correct + incorrect
@@ -166,14 +192,15 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 		score.append(sum(collect) / len(collect))
 		accuracy.append(sum(ratio) / len(ratio))
 		collect, ratio = [], []
-		
-		if (show == True): 
-			
+		correct, incorrect = 0, 0
+
+		if (show == True):
+
 			print("\nEpisode:", epoch + 1)
 			print("Error:", round(score[-1], 4))
 			print("Accuracy:", round(accuracy[-1], 4))
 
-	return ANN, score, accuracy
+	return model, score, accuracy
 
 
 def plot(data, colour, name, x, y):
@@ -193,7 +220,7 @@ def plot(data, colour, name, x, y):
 	plt.show()
 
 
-def test(model, data, output):
+def test(model, data, output, flag = False):
 
 	correct, incorrect, Y = 0, 0, []
 	for x, y in data: Y += [y[index].item() for index in range(len(y))]
@@ -204,7 +231,7 @@ def test(model, data, output):
 
 		for x, y in data:
 
-			if (len(x.shape) > 2): x = x.reshape(x.shape[0], -1)
+			if ((x.shape.numel() > 2) & (flag == False)): x = x.reshape(x.shape[0], -1)
 			prediction = model(x)
 
 			for index in range(len(prediction)):
@@ -214,9 +241,9 @@ def test(model, data, output):
 					if (torch.argmax(prediction[index]) == y[index]): correct += 1 
 					else: incorrect += 1
 
-				elif (output == 1): 
+				elif (output == 1):
 
-					if (min(labels, key = lambda value: abs(value - prediction[index].item())) == y[index].item()): correct += 1
+					if (min(labels, key = lambda x: abs(x - prediction[index].item())) == y[index].item()): correct += 1
 					else: incorrect += 1
 
 	total = correct + incorrect
