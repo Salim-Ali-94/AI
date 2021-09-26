@@ -11,8 +11,8 @@ if __name__ == "__main__":
 	X, y = network.extract("iris.csv", encoding = encoding, output = output, label = "species")
 	trainer, tester, validater = network.partition(X, y, output, batch, train_percent)
 	dimension = len(X[0])
-	neurons = (dimension, output)
-	activity = ("sigmoid", )
+	neurons = [dimension, output]
+	activity = ["sigmoid"]
 	cost = "mse"
 	optimizer = "adam"
 	model, error, accuracy = network.learn(trainer, neurons, activity, learning_rate, episodes, cost, optimizer)
