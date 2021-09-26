@@ -18,6 +18,6 @@ if __name__ == "__main__":
 	cost = "crossentropy"
 	optimizer = "adam"
 	model, error, accuracy = network.learn(trainer, neurons, activity, learning_rate, episodes, cost, optimizer, height, kernel, stride, padding, window, convolutions)
-	network.plot(error, "forestgreen", "accumulated_error_over_each_epoch_mnist_classification_cnn_", "Episode", "Error")
-	network.plot(accuracy, "mediumvioletred", "accuracy_over_each_epoch_mnist_classification_cnn_", "Episode", "Learning accuracy")
+	network.plot(error, "forestgreen", "accumulated_error_over_each_epoch_mnist_classification_cnn", "Episode", "Error")
+	network.plot(accuracy, "mediumvioletred", "accuracy_over_each_epoch_mnist_classification_cnn", "Episode", "Learning accuracy")
 	network.test(model, tester, output, True)
