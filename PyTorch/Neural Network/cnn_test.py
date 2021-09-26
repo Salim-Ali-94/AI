@@ -1,4 +1,4 @@
-import modular_network as network
+import neural_network as network
 
 
 if __name__ == "__main__":
