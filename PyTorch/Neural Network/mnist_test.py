@@ -11,8 +11,8 @@ if __name__ == "__main__":
 	trainer, tester, validater = network.partition(X, y, output, batch, train_percent)
 	episodes = int(1e2)
 	learning_rate = 5e-3
-	neurons = (dimension, 40, 50, 50, 20, output)
-	activity = ("relu", "relu", "relu", "relu", "")
+	neurons = [dimension, 40, 50, 50, 20, output]
+	activity = ["relu", "relu", "relu", "relu", ""]
 	cost = "crossentropy"
 	optimizer = "adam"
 	model, error, accuracy = network.learn(trainer, neurons, activity, learning_rate, episodes, cost, optimizer)
