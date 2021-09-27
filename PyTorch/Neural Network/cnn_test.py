@@ -7,7 +7,7 @@ if __name__ == "__main__":
 	Y = [element.item() for element in y]
 	output, window = len(list(set(Y))), 3
 	batch, train_percent = 32, 80
-	episodes, learning_rate = 50, 5e-3
+	episodes, learning_rate = 10, 5e-3
 	trainer, tester, validater = network.partition(X, y, output, batch, train_percent)
 	height, channel = X[0].shape[-1], X[0].shape[0]
 	kernel, stride, padding = [5, 5], [1, 1], [1, 1]
