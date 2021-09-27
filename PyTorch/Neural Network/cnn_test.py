@@ -12,9 +12,9 @@ if __name__ == "__main__":
 	height, channel = X[0].shape[-1], X[0].shape[0]
 	kernel, stride, padding = [5, 5], [1, 1], [1, 1]
 	convolutions = [channel, 10, 20]
+	neurons = [50, output]
 	activity = ["relu", "relu"]
 	activity += ["relu", ""]
-	neurons = [50, output]
 	cost = "crossentropy"
 	optimizer = "adam"
 	model, error, accuracy = network.learn(trainer, neurons, activity, learning_rate, episodes, cost, optimizer, kernel, stride, padding, height, window, convolutions)
