@@ -142,7 +142,7 @@ def partition(characteristic, category, output, batch, training_percentage, vali
 	return trainer, tester, validater
 
 
-def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator, height = 0, kernel = 0, stride = 0, padding = 0, window = 0, convolutions = [], show = True):
+def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator, kernel = 0, stride = 0, padding = 0, height = 0, window = 0, convolutions = [], show = True):
 
 	collect, score = [], []
 	accuracy, ratio = [], []
@@ -151,7 +151,7 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 	labels = list(set(Y))
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 	if (type(cost) == str): functions[-1] = "" if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1])) else functions[-1]
-	model = ArtificialNeuralNetwork(neurons, functions, ConvolutionalNeuralNetwork(height, kernel, stride, padding, window, convolutions, neurons, functions)).to(device) if (height != 0) else ArtificialNeuralNetwork(neurons, functions, None).to(device)
+	model = ArtificialNeuralNetwork(neurons, functions, ConvolutionalNeuralNetwork(kernel, stride, padding, height, window, convolutions, neurons, functions)).to(device) if (kernel != 0) else ArtificialNeuralNetwork(neurons, functions, None).to(device)
 	if (propagator.lower().rstrip().lstrip() in optimization): optimizer = algorithm(model, optimization[propagator.lower().rstrip().lstrip()], learning_rate)
 	else: optimizer = solver.Adam(model.parameters(), lr = learning_rate)
 	if callable(cost): error = cost
@@ -165,7 +165,7 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 		for x, y in trainer:
 
 			x, y = x.to(device), y.to(device)
-			if ((x.shape.numel() > 2) & (height == 0)): x = x.reshape(x.shape[0], -1)
+			if ((x.shape.numel() > 2) & (kernel == 0)): x = x.reshape(x.shape[0], -1)
 			optimizer.zero_grad()
 			prediction = model(x)
 			loss = error(prediction, y)
