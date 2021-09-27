@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 plt.rcParams["font.family"] = "Arial"
 
 
-activation = {"relu": "ReLU", "tanh": "Tanh", "sigmoid": "Sigmoid", "softmax": "Softmax", "logsoftmax": "LogSoftmax"}
+activation = {"relu": "ReLU", "tanh": "Tanh", "sigmoid": "Sigmoid", "softmax": "Softmax", "logsoftmax": "LogSoftmax", "leaky": "LeakyReLU"}
 utility = {"nll": "NLLLoss", "bce": "BCELoss", "mse": "MSELoss", "crossentropy": "CrossEntropyLoss"}
 optimization = {"adam": "Adam", "rms": "RMSProp", "sgd": "SGD"}
 dataset = {"mnist": "MNIST", "cifar": "CIFAR10", "celeb": "CelebA", "fashion": "FashionMNIST"}
@@ -46,7 +46,7 @@ class ConvolutionalNeuralNetwork(NN.Module):
 	dimension = lambda self, pixels, kernel, padding = 1, stride = 1: np.floor((pixels + 2*padding - kernel) / stride) + 1
 	forward = lambda self, data: self.network(data)
 
-	def __init__(self, height, kernel, stride, padding, factor, convolutions, nodes, functions):
+	def __init__(self, kernel, stride, padding, height, factor, convolutions, nodes, functions):
 
 		super().__init__()
 		depth = len(convolutions) - 1
