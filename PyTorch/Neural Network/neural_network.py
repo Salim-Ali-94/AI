@@ -61,7 +61,7 @@ class ConvolutionalNeuralNetwork(NN.Module):
 			if (index == 0): size = self.dimension(height, kernel[index], padding[index], stride[index]) // factor
 			else: size = self.dimension(size, kernel[index], padding[index], stride[index]) // factor
 
-		self.network.add_module(f"transform", NN.Flatten())
+		self.network.add_module("transform", NN.Flatten())
 		size = convolutions[-1]*int(self.dimension(size, 1, 0, 1)*self.dimension(size, 1, 0, 1))
 		nodes.insert(0, size)
 		ANN = ArtificialNeuralNetwork(nodes, functions[depth:], self.network)
