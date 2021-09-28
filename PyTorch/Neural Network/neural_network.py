@@ -64,7 +64,7 @@ class ConvolutionalNeuralNetwork(NN.Module):
 		self.network.add_module("transform", NN.Flatten())
 		size = convolutions[-1]*int(self.dimension(size, 1, 0, 1)*self.dimension(size, 1, 0, 1))
 		nodes.insert(0, size)
-		ANN = ArtificialNeuralNetwork(nodes, functions[depth:], self.network)
+		ArtificialNeuralNetwork(nodes, functions[depth:], self.network)
 
 
 
