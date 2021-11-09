@@ -211,28 +211,28 @@ class ArtificialNeuralNetwork(object):
 
 	def test(self, data = None, target = None):
 
-		miss_classification = 0
-		sucessful_classification = 0
+		incorrect = 0
+		correct = 0
 
 		if (self.indicator == 0):
 
 			for index in range(data.shape[0]):
 
 				output = np.round(self.classifier(data[index]), decimals = 1)
-				if (output == target[index]): sucessful_classification += 1
-				elif (output != target[index]): miss_classification += 1
+				if (output == target[index]): correct += 1
+				elif (output != target[index]): incorrect += 1
 
 		elif (self.indicator != 0):
 
 			for index in range(self.test_inputs.shape[0]):
 
 				output = np.round(self.classifier(self.test_inputs[index]), decimals = 1)
-				if (output == self.test_outputs[index]): sucessful_classification += 1
-				elif (output != self.test_outputs[index]): miss_classification += 1
+				if (output == self.test_outputs[index]): correct += 1
+				elif (output != self.test_outputs[index]): incorrect += 1
 
-		if (miss_classification == 1): print(f"The classifier correctly labeled {sucessful_classification} input samples and incorrectly labeled {miss_classification} sample from the test dataset\n")
-		elif (sucessful_classification == 1): print(f"The classifier correctly labeled {sucessful_classification} input sample and incorrectly labeled {miss_classification} samples from the test dataset\n")
-		else: print(f"The classifier correctly labeled {sucessful_classification} input samples and incorrectly labeled {miss_classification} samples from the test dataset\n")
+		if (incorrect == 1): print(f"The classifier correctly labeled {correct} input samples and incorrectly labeled {incorrect} sample from the test dataset\n")
+		elif (correct == 1): print(f"The classifier correctly labeled {correct} input sample and incorrectly labeled {incorrect} samples from the test dataset\n")
+		else: print(f"The classifier correctly labeled {correct} input samples and incorrectly labeled {incorrect} samples from the test dataset\n")
 
 
 	def plot(self):
