@@ -49,7 +49,7 @@ class Perceptron(object):
 
 	def train(self):
 
-		Error = 0
+		loss = 0
 
 		for episode in range(self.epochs):
 
@@ -60,18 +60,18 @@ class Perceptron(object):
 				update = self.learning_rate*error
 				self.weights += update*self.features[example]
 				self.bias += update
-				Error += error
+				loss += error
 
 			print("Episode:", episode + 1)
-			print("Error:", Error, "\n\n")
-			self.cost.append(Error)
-			Error = 0
+			print("Error:", loss, "\n\n")
+			self.cost.append(loss)
+			loss = 0
 
 
 	def test(self, data = None, target = None):
 
-		miss_classification = 0
-		sucessful_classification = 0
+		incorrect = 0
+		correct = 0
 
 		if (self.indicator == 0):
 
@@ -79,27 +79,20 @@ class Perceptron(object):
 
 				output = int(self.classifier(data[index]))
 
-				if (output == target[index]): sucessful_classification += 1
-				elif (output != target[index]): miss_classification += 1
+				if (output == target[index]): correct += 1
+				elif (output != target[index]): incorrect += 1
 
 		elif (self.indicator != 0):
 
 			for index in range(self.test_inputs.shape[0]):
 
 				output = int(self.classifier(self.test_inputs[index]))
-				if (output == self.test_outputs[index]): sucessful_classification += 1
-				elif (output != self.test_outputs[index]): miss_classification += 1
+				if (output == self.test_outputs[index]): correct += 1
+				elif (output != self.test_outputs[index]): incorrect += 1
 
-		if (miss_classification == 1):
-			
-			print("The classifier correctly labeled {} input samples "\
-			      "and incorrectly labeled {} sample from the test "\
-			      "dataset\n\n".format(sucessful_classification, miss_classification))
-		else:
-			
-			print("The classifier correctly labeled {} input samples "\
-			      "and incorrectly labeled {} samples from the test "\
-			      "dataset\n\n".format(sucessful_classification, miss_classification))
+		if (incorrect == 1): print(f"The classifier correctly labeled {correct} input samples and incorrectly labeled {incorrect} sample from the test dataset\n\n")
+		elif (correct == 1): print(f"The classifier correctly labeled {correct} input sample and incorrectly labeled {incorrect} samples from the test dataset\n\n")
+		else: print(f"The classifier correctly labeled {correct} input samples and incorrectly labeled {incorrect} samples from the test dataset\n\n")
 
 
 	def plot(self):
