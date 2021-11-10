@@ -6,6 +6,7 @@ plt.rcParams["font.family"] = "Arial"
 class Perceptron(object):
 
 	sigmoid = lambda self, x: 1 / (1 + np.exp(-x))
+	tanh = lambda self, x: np.tanh(x)
 	activation = lambda self, features, weights, bias: self.sigmoid(weights.dot(features) + bias)
 	classifier = lambda self, inputs: round(self.activation(inputs, self.weights, self.bias))
 
