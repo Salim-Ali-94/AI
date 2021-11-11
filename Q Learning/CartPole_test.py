@@ -29,9 +29,9 @@ def test(agent):
 		total += score
 		
 	agent.environment.close()
-	if (passed == 1): print("The agent sucessfully passed {} trial and failed {} attempts, with an average score of {}.\n".format(passed, failed, total / 100))
-	elif (failed == 1): print("The agent sucessfully passed {} trials and failed {} attempt, with an average score of {}.\n".format(passed, failed, total / 100))
-	else: print("The agent sucessfully passed {} trials and failed {} attempts, with an average score of {}.\n".format(passed, failed, total / 100))
+	if (passed == 1): print(f"The agent sucessfully passed {passed} trial and failed {failed} attempts, with an average score of {total / 100}.\n")
+	elif (failed == 1): print(f"The agent sucessfully passed {passed} trials and failed {failed} attempt, with an average score of {total / 100}.\n")
+	else: print(f"The agent sucessfully passed {passed} trials and failed {failed} attempts, with an average score of {total / 100}.\n")
 
 
 if __name__ == "__main__":
