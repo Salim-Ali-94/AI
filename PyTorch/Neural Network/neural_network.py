@@ -550,10 +550,11 @@ def validate(model, validater, error, horizon, residual, episodes, labels = []):
 	return model, validate.cost, validate.accuracy, flag
 
 
-def processor(generator, critic, row, column, size, name):
+def processor(generator, critic, row, column, size, noise_width, name, flag = False):
 
 	generator.eval(), critic.eval()
-	image = generator(torch.randn(size).to(device))
+	if (flag == True): image = generator(torch.randn(size, width, 1, 1)).to(device)
+	else: image = generator(torch.randn(size, width)).to(device)
 	figure, axes = plt.subplots(row, column, figsize = (2*column, 2*row))
 	expand = list(image.size())
 	expand[0] = 1
