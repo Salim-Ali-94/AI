@@ -25,7 +25,7 @@ activation = {"relu": "ReLU", "tanh": "Tanh", "sigmoid": "Sigmoid", "softmax": "
 utility = {"nll": "NLLLoss", "bce": "BCELoss", "mse": "MSELoss", "crossentropy": "CrossEntropyLoss"}
 optimization = {"adam": "Adam", "rms": "RMSProp", "sgd": "SGD"}
 dataset = {"mnist": "MNIST", "cifar": "CIFAR10", "celeb": "CelebA", "fashion": "FashionMNIST", "emnist": "EMNIST"}
-norm = {"batch": "BatchNorm2d", "instance": "InstanceNorm2d", "layer": "LayerNorm2d"}
+normalizer = {"batch": "BatchNorm2d", "instance": "InstanceNorm2d", "layer": "LayerNorm2d"}
 pool = {"average": "AvgPool2d", "max": "MaxPool2d"}
 function = lambda transform, slope = None: getattr(torch.nn, transform)(dim = 1) if ("Softmax" in transform) else getattr(torch.nn, transform)(slope) if (("LeakyReLU" in transform) & (slope != None)) else getattr(torch.nn, transform)()
 criterion = lambda score: getattr(torch.nn, score)()
@@ -60,12 +60,12 @@ class ConvolutionalNeuralNetwork(NN.Module):
 	dimension = lambda self, pixels, kernel, padding = 1, stride = 1: np.floor((pixels + 2*padding - kernel) / stride) + 1
 	forward = lambda self, data: self.network(data)
 
-	def __init__(self, kernel, stride, padding, height, convolutions, functions, nodes = [], channel = 1, pooling = [], direction = 1, offset = True, normalizing = [], flatten = False, unflatten = False):
+	def __init__(self, kernel, stride, padding, height, convolutions, functions, nodes = [], channel = 1, pooling = [], direction = 1, offset = True, normalization = [], flatten = False, unflatten = False):
 
 		super().__init__()
 		depth = len(convolutions) - 1
 		self.network = NN.Sequential()
-		if (normalizing == []): normalizing = [("", 0)]*depth
+		if (normalization == []): normalization = [("", 0)]*depth
 		if (pooling == []): pooling = [("", 0)]*depth
 		
 		for index in range(depth):
@@ -73,11 +73,11 @@ class ConvolutionalNeuralNetwork(NN.Module):
 			if (direction == -1): self.network.add_module(f"transpose convolution {index + 1}", NN.ConvTranspose2d(convolutions[index], convolutions[index + 1], kernel[index], stride[index], padding[index], bias = offset))
 			else: self.network.add_module(f"convolution {index + 1}", NN.Conv2d(convolutions[index], convolutions[index + 1], kernel[index], stride[index], padding[index], bias = offset))
 			if (pooling[index][0] != ""): self.network.add_module(f"pool {index + 1}", sampling(pool[pooling[index][0]], pooling[index][1])) if (pooling[index][0].lower().lstrip().rstrip() in pool) else self.network.add_module(f"pool {index + 1}", sampling(pool["max"], pooling[index][1]))
-			if ((normalizing[index][0] != "") & (normalizing[index][-1] == 0)): self.network.add_module(f"norm {index + 1}", aggregate(norm[normalizing[index][0]], normalizing[index][1])) if (normalizing[index][0].lower().lstrip().rstrip() in norm) else self.network.add_module(f"norm {index + 1}", aggregate(norm["batch"], normalizing[index][1]))
+			if ((normalization[index][0] != "") & (normalization[index][-1] == 0)): self.network.add_module(f"norm {index + 1}", aggregate(normalizer[normalization[index][0]], normalization[index][1])) if (normalization[index][0].lower().lstrip().rstrip() in normalizer) else self.network.add_module(f"norm {index + 1}", aggregate(normalizer["batch"], normalization[index][1]))
 			if (type(functions[index]) != str): self.network.add_module(f"activation {index + 1}", function(activation[functions[index][0].lower().rstrip().lstrip()])) if ((functions[index][0].lower().rstrip().lstrip() in activation) & (functions[index][0].lower().rstrip().lstrip() != "") & (len(functions[index]) == 2) & (functions[index][-1] >= 1)) else self.network.add_module(f"activity {index + 1}", function(activation[functions[index][0].lower().rstrip().lstrip()], functions[index][1])) if ((functions[index][0].lower().rstrip().lstrip() in activation) & (functions[index][0].lower().rstrip().lstrip() != "") & (len(functions[index]) == 2) & (functions[index][-1] < 1)) else self.network.add_module(f"activity {index + 1}", function(activation[functions[index][0].lower().rstrip().lstrip()], functions[index][1])) if ((functions[index][0].lower().rstrip().lstrip() in activation) & (functions[index][0].lower().rstrip().lstrip() != "") & (len(functions[index]) == 3)) else self.network.add_module(f"activity {index + 1}", function(activation["relu"])), self.network.add_module(f"drop {index + 1}", torch.nn.Dropout(functions[index][-1] / 100)) if (functions[index][-1] >= 1) else None
 			elif (functions[index].lower().rstrip().lstrip() in activation): self.network.add_module(f"activation {index + 1}", function(activation[functions[index].lower().rstrip().lstrip()]))
 			elif (functions[index].lower().rstrip().lstrip() != ""): self.network.add_module(f"activation {index + 1}", function(activation["relu"]))
-			if ((normalizing[index][0] != "") & (normalizing[index][-1] != 0)): self.network.add_module(f"norm {index + 1}", aggregate(norm[normalizing[index][0]], normalizing[index][1])) if (normalizing[index][0].lower().lstrip().rstrip() in norm) else self.network.add_module(f"norm {index + 1}", aggregate(norm["batch"], normalizing[index][1]))
+			if ((normalization[index][0] != "") & (normalization[index][-1] != 0)): self.network.add_module(f"norm {index + 1}", aggregate(normalizer[normalization[index][0]], normalization[index][1])) if (normalization[index][0].lower().lstrip().rstrip() in normalizer) else self.network.add_module(f"norm {index + 1}", aggregate(norm["batch"], normalization[index][1]))
 			if ((index == 0) & (pooling[index][0] != "")): size = self.dimension(height, kernel[index], padding[index], stride[index]) // pooling[index][1]
 			elif (pooling[index][0] != ""): size = self.dimension(size, kernel[index], padding[index], stride[index]) // pooling[index][1]
 			if ((nodes == []) & (flatten == True) & (index == depth - 1)): self.network.add_module("transform", NN.Flatten())
@@ -192,7 +192,7 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 	return trainer, tester, validater
 
 
-def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator, validater = [], horizon = 0, kernel = [], stride = [], padding = [], channel = 1, height = 28, pooling = [], convolutions = [], direction = 1, offset = True, normalizing = [], flatten = False, unflatten = False, show = True):
+def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator, validater = [], horizon = 0, kernel = [], stride = [], padding = [], channel = 1, height = 28, pooling = [], convolutions = [], direction = 1, offset = True, normalization = [], flatten = False, unflatten = False, show = True):
 
 	flag = False
 	collect, ratio = [], []
@@ -204,7 +204,7 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 	for x, y in trainer: Y += [y[index].item() for index in range(len(y))]
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 	if (type(cost) == str): functions[-1] = "" if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1])) else functions[-1]
-	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channel, pooling, direction, offset, normalizing, flatten, unflatten).to(device) if (kernel != []) else ArtificialNeuralNetwork(neurons, functions, None, flatten, unflatten, channel, height).to(device)
+	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channel, pooling, direction, offset, normalization, flatten, unflatten).to(device) if (kernel != []) else ArtificialNeuralNetwork(neurons, functions, None, flatten, unflatten, channel, height).to(device)
 	if (type(propagator) == str): optimizer = algorithm(model, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	elif (propagator[0].lower().rstrip().lstrip() in optimization): optimizer = algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, beta = propagator[1]) if (propagator[0].lower().rstrip().lstrip() == "adam") else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, momentum = propagator[1]) if ((propagator[0].lower().rstrip().lstrip() == "sgd") | (propagator[0].lower().rstrip().lstrip() == "rms")) else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate) if (propagator[0].lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	if callable(cost): error = cost
@@ -268,7 +268,7 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 	return model, residual, accuracy, deviation, score
 
 
-def train(trainer, functions, learning_rate, episodes, cost, propagator, noise_width, neurons = [], kernel = [], stride = [], padding = [], channel = 1, height = 28, pooling = [], convolutions = [], direction = [], offset = [], normalizing = [], flatten = [], unflatten = [], length = 0, lamda = 0, show = True):
+def train(trainer, functions, learning_rate, episodes, cost, propagator, noise_width, neurons = [], kernel = [], stride = [], padding = [], channel = 1, height = 28, pooling = [], convolutions = [], direction = [], offset = [], normalization = [], flatten = [], unflatten = [], length = 0, lamda = 0, show = True):
 
 	block_error, flag = [], False
 	collect_generator, collect_critic, error_generator, error_critic = [], [], [], []
@@ -276,8 +276,8 @@ def train(trainer, functions, learning_rate, episodes, cost, propagator, noise_w
 	real_detection, fake_detection, generator_error, critic_error = [], [], [], []
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 	if ((type(cost) == str) & (neurons != [])): functions[0][-1], functions[1][-1] = "" if ((neurons[0][-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[0][-1])) else functions[0][-1], "" if ((neurons[1][-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[1][-1])) else functions[1][-1]
-	generator = ConvolutionalNeuralNetwork(kernel[0], stride[0], padding[0], height, convolutions[0], functions[0], channel = channel, pooling = pooling, direction = direction[0], offset = offset[0], normalizing = normalizing[0], flatten = flatten[0], unflatten = unflatten[0]).to(device) if (kernel != []) else ArtificialNeuralNetwork(neurons[0], functions[0], unflatten = True, channel = channel, height = height).to(device)
-	critic = ConvolutionalNeuralNetwork(kernel[1], stride[1], padding[1], height, convolutions[1], functions[1], channel = channel, pooling = pooling, direction = direction[1], offset = offset[1], normalizing = normalizing[1], flatten = flatten[1], unflatten = unflatten[1]).to(device) if (kernel != []) else ArtificialNeuralNetwork(neurons[1], functions[1], flatten = True, channel = channel, height = height).to(device)
+	generator = ConvolutionalNeuralNetwork(kernel[0], stride[0], padding[0], height, convolutions[0], functions[0], channel = channel, pooling = pooling, direction = direction[0], offset = offset[0], normalization = normalization[0], flatten = flatten[0], unflatten = unflatten[0]).to(device) if (kernel != []) else ArtificialNeuralNetwork(neurons[0], functions[0], unflatten = True, channel = channel, height = height).to(device)
+	critic = ConvolutionalNeuralNetwork(kernel[1], stride[1], padding[1], height, convolutions[1], functions[1], channel = channel, pooling = pooling, direction = direction[1], offset = offset[1], normalization = normalization[1], flatten = flatten[1], unflatten = unflatten[1]).to(device) if (kernel != []) else ArtificialNeuralNetwork(neurons[1], functions[1], flatten = True, channel = channel, height = height).to(device)
 	if (type(propagator) == str): optimizer_generator, optimizer_critic = algorithm(generator, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(generator, optimization["adam"], learning_rate), algorithm(critic, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(critic, optimization["adam"], learning_rate)
 	elif (propagator[0].lower().rstrip().lstrip() in optimization): optimizer_generator, optimizer_critic = algorithm(generator, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, beta = propagator[1]) if (propagator[0].lower().rstrip().lstrip() == "adam") else algorithm(generator, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, momentum = propagator[1]) if ((propagator[0].lower().rstrip().lstrip() == "sgd") | (propagator[0].lower().rstrip().lstrip() == "rms")) else algorithm(generator, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate) if (propagator[0].lower().rstrip().lstrip() in optimization) else algorithm(generator, optimization["adam"], learning_rate), algorithm(critic, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, beta = propagator[1]) if (propagator[0].lower().rstrip().lstrip() == "adam") else algorithm(critic, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, momentum = propagator[1]) if ((propagator[0].lower().rstrip().lstrip() == "sgd") | (propagator[0].lower().rstrip().lstrip() == "rms")) else algorithm(critic, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate) if (propagator[0].lower().rstrip().lstrip() in optimization) else algorithm(critic, optimization["adam"], learning_rate)
 	if callable(cost): error = cost
