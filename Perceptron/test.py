@@ -17,7 +17,7 @@ def predict(inputs, outputs, learning_rate, episodes, training_data_percent, new
 
     neuron = perceptron.Perceptron(inputs, outputs, learning_rate, episodes)
     neuron.partition(training_data_percent)
-    neuron.train()
+    neuron.learn()
     neuron.test()
     label = int(neuron.classifier(new_point))
     if (label == 0): print("The new flower belongs to the Setosa species\n")
