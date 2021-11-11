@@ -81,7 +81,7 @@ class ConvolutionalNeuralNetwork(NN.Module):
 			if ((index == 0) & (pooling[index][0] != "")): size = self.dimension(height, kernel[index], padding[index], stride[index]) // pooling[index][1]
 			elif (pooling[index][0] != ""): size = self.dimension(size, kernel[index], padding[index], stride[index]) // pooling[index][1]
 			if ((nodes == []) & (flatten == True) & (index == depth - 1)): self.network.add_module("transform", NN.Flatten())
-			if ((index == depth - 1) & (nodes != []) & (pooling[index][0] != "")): nodes.insert(0, convolutions[-1]*int(self.dimension(size, 1, 0, 1)*self.dimension(size, 1, 0, 1))), ArtificialNeuralNetwork(nodes, functions[depth:], self.network, flatten, unflatten, height)
+			if ((index == depth - 1) & (nodes != []) & (pooling[index][0] != "")): nodes.insert(0, convolutions[-1]*int(self.dimension(size, 1, 0, 1)*self.dimension(size, 1, 0, 1))), ArtificialNeuralNetwork(nodes, functions[depth:], self.network, flatten, unflatten, channel, height)
 
 
 
