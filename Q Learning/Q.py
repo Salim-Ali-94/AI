@@ -68,16 +68,8 @@ class QAgent(object):
 			for position in range(self.size_observations):
 
 				element = states[entry][position]
-
-				if (entry == 0):
-
-					minimum[position] = element
-					maximum[position] = element
-					
-				elif (entry > 0):
-					
-					if (element > maximum[position]): maximum[position] = element
-					if (element < minimum[position]): minimum[position] = element
+				if (entry == 0): minimum[position], maximum[position] = element, element
+				elif (entry > 0): maximum[position], minimum[position] = element if (element > maximum[position]) else maximum[position], element if (element < minimum[position]) else minimum[position]
 
 		return minimum, maximum
 
@@ -124,11 +116,7 @@ class QAgent(object):
 			print("Reward:", score, "\n")
 			profit.append(score)
 			exploration = self.epsilon + (1 - self.epsilon)*np.exp(-self.beta*episode)
-
-			if (episode%checkpoint == 0):
-
-				average = sum(profit[-checkpoint:]) / len(profit[-checkpoint:])
-				self.profit.append(average)
+			if (episode%checkpoint == 0): self.profit.append(sum(profit[-checkpoint:]) / len(profit[-checkpoint:]))
 
 		self.environment.close()
 
