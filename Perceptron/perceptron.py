@@ -48,7 +48,7 @@ class Perceptron(object):
 		self.indicator = 1
 
 
-	def train(self):
+	def learn(self):
 
 		loss = 0
 
