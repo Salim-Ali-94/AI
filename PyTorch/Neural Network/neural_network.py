@@ -192,7 +192,7 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 	return trainer, tester, validater
 
 
-def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator, validater = [], horizon = 0, kernel = 0, stride = 0, padding = 0, channel = 1, height = 28, pooling = [], convolutions = [], direction = 1, offset = True, normalizing = [], flatten = False, unflatten = False, show = True):
+def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator, validater = [], horizon = 0, kernel = [], stride = [], padding = [], channel = 1, height = 28, pooling = [], convolutions = [], direction = 1, offset = True, normalizing = [], flatten = False, unflatten = False, show = True):
 
 	flag = False
 	collect, ratio = [], []
@@ -204,7 +204,7 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 	for x, y in trainer: Y += [y[index].item() for index in range(len(y))]
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 	if (type(cost) == str): functions[-1] = "" if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1])) else functions[-1]
-	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channel, pooling, direction, offset, normalizing, flatten, unflatten).to(device) if (kernel != 0) else ArtificialNeuralNetwork(neurons, functions, None, flatten, unflatten, channel, height).to(device)
+	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channel, pooling, direction, offset, normalizing, flatten, unflatten).to(device) if (kernel != []) else ArtificialNeuralNetwork(neurons, functions, None, flatten, unflatten, channel, height).to(device)
 	if (type(propagator) == str): optimizer = algorithm(model, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	elif (propagator[0].lower().rstrip().lstrip() in optimization): optimizer = algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, beta = propagator[1]) if (propagator[0].lower().rstrip().lstrip() == "adam") else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, momentum = propagator[1]) if ((propagator[0].lower().rstrip().lstrip() == "sgd") | (propagator[0].lower().rstrip().lstrip() == "rms")) else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate) if (propagator[0].lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	if callable(cost): error = cost
@@ -254,16 +254,16 @@ def learn(trainer, neurons, functions, learning_rate, episodes, cost, propagator
 		residual.append(sum(collect) / len(collect))
 		accuracy.append(sum(ratio) / len(ratio))
 		if (validater != []): model, deviation, score, flag = validate(model, validater, error, horizon, residual[-1], episodes, labels)
+		collect, ratio = [], []
+		correct, incorrect = 0, 0
+		if ((show == False) & (flag == True)): break
 
 		if (show == True):
 
 			print("\nEpisode:", epoch + 1)
 			if (validater == []): print("Error:", round(residual[-1], 4)), print("Accuracy:", round(accuracy[-1], 4))
 			else: print("Training error:", round(residual[-1], 4)), print("Validation error:", round(deviation[-1], 4)), print("Training accuracy:", round(accuracy[-1], 4)), print("Validation accuracy:", round(score[-1], 4))
-
-		if (flag == True): break
-		collect, ratio = [], []
-		correct, incorrect = 0, 0
+			if (flag == True): break
 
 	return model, residual, accuracy, deviation, score
 
@@ -339,8 +339,7 @@ def train(trainer, functions, learning_rate, episodes, cost, propagator, noise_w
 			else: data_fake = torch.randn(len(x), noise_width).to(device)
 			image_fake = generator(data_fake)
 			prediction_fake = critic(image_fake)
-			if (length == 0): loss_generator = error(prediction_fake, label_real)
-			else: loss_generator = -torch.mean(prediction_fake)
+			loss_generator = error(prediction_fake, label_real) if (length == 0) else -torch.mean(prediction_fake)
 			optimizer_generator.zero_grad()
 			loss_generator.backward() if (length == 0) else loss_generator.backward(retain_graph = True)
 			optimizer_generator.step()
@@ -360,6 +359,8 @@ def train(trainer, functions, learning_rate, episodes, cost, propagator, noise_w
 		critic_error.append(sum(collect_critic) / len(collect_critic))
 		real_detection.append(sum(decide_real) / len(decide_real))
 		fake_detection.append(sum(decide_fake) / len(decide_fake))
+		collect_generator, collect_critic = [], []
+		decide_real, decide_fake = [], []
 
 		if (show == True):
 
@@ -368,9 +369,6 @@ def train(trainer, functions, learning_rate, episodes, cost, propagator, noise_w
 			print("Critic error:", round(critic_error[-1], 4))
 			print("Real detection:", round(real_detection[-1], 4))
 			print("Fake detection:", round(fake_detection[-1], 4))
-
-		collect_generator, collect_critic = [], []
-		decide_real, decide_fake = [], []
 
 	return generator, critic, np.array(error_generator), np.array(error_critic), np.array(detect_real), np.array(detect_fake), np.array(generator_error), np.array(critic_error), np.array(real_detection), np.array(fake_detection)
 
