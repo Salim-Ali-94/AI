@@ -21,23 +21,15 @@ def test(agent):
 			future_state = agent.sampler(observation)
 			state = future_state
 
-		if (observation[0] >= 0.5):
-
-			passed += 1
-			condition = "Passed"
-			
-		elif (observation[0] < 0.5):
-			
-			failed += 1
-			condition = "Failed"
-
+		if (observation[0] >= 0.5): passed, condition = passed + 1, "Passed"
+		elif (observation[0] < 0.5): failed, condition = failed + 1, "Failed"
 		print("Episode:", episode + 1)
 		print("Completion status:", condition, "\n")
 		
 	agent.environment.close()
-	if (passed == 1): print("The agent sucessfully passed {} trial and failed {} attempts.\n".format(passed, failed))
-	elif (failed == 1): print("The agent sucessfully passed {} trials and failed {} attempt.\n".format(passed, failed))
-	else: print("The agent sucessfully passed {} trials and failed {} attempts.\n".format(passed, failed))
+	if (passed == 1): print(f"The agent sucessfully passed {passed} trial and failed {failed} attempts.\n")
+	elif (failed == 1): print(f"The agent sucessfully passed {passed} trials and failed {failed} attempt.\n")
+	else: print(f"The agent sucessfully passed {passed} trials and failed {failed} attempts.\n")
 
 
 if __name__ == "__main__":
