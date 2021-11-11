@@ -99,7 +99,7 @@ class QAgent(object):
 
 		exploration = 1
 		checkpoint = 100
-		Reward = []
+		profit = []
 
 		for episode in range(self.epochs):
 
@@ -122,12 +122,12 @@ class QAgent(object):
 
 			print("Episode:", episode + 1)
 			print("Reward:", score, "\n")
-			Reward.append(score)
+			profit.append(score)
 			exploration = self.epsilon + (1 - self.epsilon)*np.exp(-self.beta*episode)
 
 			if (episode%checkpoint == 0):
 
-				average = sum(Reward[-checkpoint:]) / len(Reward[-checkpoint:])
+				average = sum(profit[-checkpoint:]) / len(profit[-checkpoint:])
 				self.profit.append(average)
 
 		self.environment.close()
