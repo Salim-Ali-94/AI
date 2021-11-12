@@ -21,6 +21,7 @@ plt.rcParams["font.family"] = "Arial"
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 activation = {"relu": "ReLU", "tanh": "Tanh", "sigmoid": "Sigmoid", "softmax": "Softmax", "logsoftmax": "LogSoftmax", "leaky": "LeakyReLU"}
 utility = {"nll": "NLLLoss", "bce": "BCELoss", "mse": "MSELoss", "crossentropy": "CrossEntropyLoss"}
 optimization = {"adam": "Adam", "rms": "RMSProp", "sgd": "SGD"}
@@ -570,7 +571,7 @@ def processor(generator, critic, row, column, size, noise_width, name, flag = Fa
 	plt.show()
 
 
-def gradient_penalty(critic, real_image, fake_image, device = "cpu"):
+def gradient_penalty(critic, real_image, fake_image):
 
 	batch, channel, height, width = real_image.shape
 	epsilon = torch.rand((batch, 1, 1, 1)).repeat(1, channel, height, width).to(device)
