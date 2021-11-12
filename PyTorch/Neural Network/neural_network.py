@@ -438,7 +438,7 @@ def evaluate(model, image_size, LUT, channel):
 		(height, width) = frame.shape[:2]
 		box = frame[top:bottom, right:left]
 		grey = cv2.cvtColor(box, cv2.COLOR_BGR2GRAY)
-		grey = cv2.GaussianBlur(grey, (7, 7), 0)
+ 		# grey = cv2.GaussianBlur(grey, (7, 7), 0)
 		grey = cv2.resize(grey, (image_size, image_size))
 		data = torch.Tensor(normalize(grey).reshape(1, channel, image_size, image_size))
 		prediction = model(data)
