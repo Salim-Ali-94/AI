@@ -166,12 +166,12 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 		training_x, testing_x, training_y, testing_y = split(characteristics, categories, test_size = test_percent, random_state = np.random.randint(1, 100), shuffle = True, stratify = categories)
 		train_x = torch.FloatTensor(training_x)
 		if (output > 1): train_y = torch.LongTensor(training_y)
-		else: train_y = torch.FloatTensor(training_y)
+		else: train_y = training_y.float()
 		train = group(train_x, train_y)
 		trainer = loader(dataset = train, batch_size = batch, shuffle = True, num_workers = 2)
 		test_x = torch.FloatTensor(testing_x)
 		if (output > 1): test_y = torch.LongTensor(testing_y)
-		else: test_y = torch.FloatTensor(testing_y)
+		else: test_y = testing_y.float()
 		test = group(test_x, test_y)
 		tester = loader(dataset = test, batch_size = batch, shuffle = True, num_workers = 2)
 
@@ -180,12 +180,12 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 		training_x, validation_x, training_y, validation_y = split(training_x, training_y, test_size = validate_percent, random_state = np.random.randint(1, 100), shuffle = True, stratify = training_y)
 		train_x = torch.FloatTensor(training_x)
 		if (output > 1): train_y = torch.LongTensor(training_y)
-		else: train_y = torch.FloatTensor(training_y)
+		else: train_y = training_y.float()
 		train = group(train_x, train_y)
 		trainer = loader(dataset = train, batch_size = batch, shuffle = True, num_workers = 2)
 		validate_x = torch.FloatTensor(validation_x)
 		if (output > 1): validate_y = torch.LongTensor(validation_y)
-		else: validate_y = torch.FloatTensor(validation_y)
+		else: validate_y = validation_y.float()
 		validate = group(validate_x, validate_y)
 		validater = loader(dataset = validate, batch_size = batch, shuffle = True, num_workers = 2)
 
@@ -562,7 +562,7 @@ def processor(generator, critic, row, column, size, noise_width, name, flag = Fa
 
 	for index, axis in enumerate(axes.flatten()):
 
-		axis.imshow(image[index, :, ].detach().squeeze(), cmap = "gray")
+		axis.imshow(image[index, :, ].detach().cpu().squeeze(), cmap = "gray")
 		print(f"image {index + 1}:", "Real" if (critic(image[index, :, ].reshape(expand)).item() > 0.5) else "Fake")
 		axis.axis("off")
 
