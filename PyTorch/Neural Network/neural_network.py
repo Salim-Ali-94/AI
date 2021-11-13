@@ -249,12 +249,12 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	mode = True if (TNN != []) else False
 	model.train()
 	os.system("cls")
-	print(), print("_"*120)
+	print(), print("*"*120)
 	print(), print("MODEL ARCHITECTURE")
-	print(), print("_"*120)
+	print(), print("*"*120)
 	try: print(), print(summary(model, (channels, height, height))) if (CNN != []) else print(summary(model, (heads, width_embedding))) if (TNN != []) else print(summary(model, (channels, height*height))) if (ANN != [])
 	except: print(), print(model)
-	print(), print("_"*120)
+	print(), print("*"*120)
 
 	for epoch in range(episodes):
 
@@ -328,17 +328,17 @@ def train(trainer, learning_rate, episodes, cost, propagator, GAN = [], DCGAN = 
 	generator.train()
 	critic.train()
 	os.system("cls")
-	print(), print("_"*120)
+	print(), print("*"*120)
 	print(), print("GENERATOR MODEL ARCHITECTURE")
-	print(), print("_"*120)
+	print(), print("*"*120)
 	try: print(), print(summary(generator, (noise_width, height, height)))
 	except: print(), print(generator)
-	print(), print("_"*120)
+	print(), print("*"*120)
 	print(), print("CRITIC MODEL ARCHITECTURE")
-	print(), print("_"*120)
+	print(), print("*"*120)
 	try: print(), print(summary(critic, (channels, height, height)))
 	except: print(), print(critic)
-	print(), print("_"*120)
+	print(), print("*"*120)
 
 	for epoch in range(episodes):
 
@@ -572,7 +572,7 @@ def validate(model, validater, error, horizon, residual, episodes, labels = [], 
 
 		if ((count == horizon) & (counter >= int(0.8*horizon))): 
 
-			print(), print("_"*120)
+			print(), print("*"*120)
 			print(), print("TERMINATING LEARNING PROCESS")
 			print(), print(f"\nTraining summary: \n\ntruncated at {validate.epoch + 1} cycles out of {episodes}\n")
 			print(), print(f"last discarded nodes;")
@@ -590,7 +590,7 @@ def validate(model, validater, error, horizon, residual, episodes, labels = [], 
 				try: print(f"\n\n{tag}:\n", parameter.detach().numpy(), "\n\n")	
 				except Exception as e: print(e)
 
-			print(), print("_"*120)
+			print(), print("*"*120)
 			flag = True
 
 	validate.epoch += 1
