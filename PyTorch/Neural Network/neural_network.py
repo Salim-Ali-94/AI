@@ -105,7 +105,7 @@ class TransformerNeuralNetwork(NN.Module):
 
 		source_padding_mask = self.mask(source)
 		length_source, width_source = source.shape
-		length_target, width_target = target.shapes
+		length_target, width_target = target.shape
 		position_source = (torch.arange(0, length_source).unsqueeze(1).expand(length_source, width_source).to(device))
 		position_target = (torch.arange(0, length_target).unsqueeze(1).expand(length_target, width_target).to(device))
 		embed_source = self.dropout(self.source_word_embedding(source) + self.source_position_embedding(position_source))
