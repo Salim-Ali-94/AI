@@ -230,9 +230,9 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = [], TNN = [], validater = [], horizon = 0, flatten = False, unflatten = False, show = True):
 
 	assert (ANN != []) | (CNN != []) | (TNN != []), "A MODEL ARCHITECTURE IS REQUIRED"
-	if (CNN != []): neurons, functions, kernel, stride, padding, channels, height, pooling, convolutions, direction, offset, normalization = CNN if (len(CNN) == 12) else CNN.insert(0, []) if (len(CNN) == 11) else CNN.insert(0, []).insert(0, [])
+	if (CNN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, neurons, channels, height, offset = CNN
 	elif (TNN != []): width_embedding, width_source_vocabulary, width_target_vocabulary, padding_index, heads, width_encoder, width_decoder, expansion, drop_percent, maximum = TNN
-	elif (ANN != []): neurons, functions, channels, height = ANN if (len(ANN) == 4) else ANN.insert(0, []) if (len(ANN) == 3) else ANN.insert(0, []).insert(0, [])
+	elif (ANN != []): neurons, functions, channels, height = ANN
 	collect, ratio = [], []
 	accuracy, residual = [], []
 	score, deviation = [], []
@@ -309,12 +309,12 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	return model, residual, accuracy, deviation, score
 
 
-def train(trainer, functions, learning_rate, episodes, cost, propagator, GAN = [], DCGAN = [], DCWGANGP = [], flatten = [], unflatten = [], show = True):
+def train(trainer, learning_rate, episodes, cost, propagator, GAN = [], DCGAN = [], DCWGANGP = [], flatten = [], unflatten = [], show = True):
 
 	assert (GAN != []) | (DCGAN != []) | (DCWGANGP != []), "A MODEL ARCHITECTURE IS REQUIRED"
-	if (DCGAN != []): kernel, stride, padding, channels, height, pooling, convolutions, direction, offset, normalization, noise_width = DCGAN
-	elif (DCWGANGP != []): kernel, stride, padding, channels, height, pooling, convolutions, direction, offset, normalization, length, lamda, noise_width = DCWGANGP
-	elif (GAN != []): neurons, noise_width = GAN
+	if (DCGAN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, noise_width, channels, height, offset = DCGAN
+	elif (DCWGANGP != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, noise_width, length, lamda, channels, height, offset = DCWGANGP
+	elif (GAN != []): neurons, functions, noise_width = GAN
 	block_error, flag = [], False
 	collect_generator, collect_critic, error_generator, error_critic = [], [], [], []
 	decide_real, decide_fake, detect_real, detect_fake = [], [], [], []
