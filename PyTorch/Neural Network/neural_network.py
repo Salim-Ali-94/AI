@@ -227,8 +227,8 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 def learn(trainer, functions, learning_rate, episodes, cost, propagator, ANN = [], CNN = [], TNN = [], validater = [], horizon = 0, flatten = False, unflatten = False, show = True):
 
 	assert (ANN != []) | (CNN != []) | (TNN != []), "A MODEL ARCHITECTURE IS REQUIRED"
-	if (CNN != []): neurons, kernel, stride, padding, channels, height, pooling, convolutions, direction, offset, normalization = DCGAN
-	elif (TNN != []): neurons, width_embedding, width_source_vocabulary, width_target_vocabulary, padding_index, heads, width_encoder, width_decoder, expansion, dropout_percent, maximum = DCWGANGP
+	if (CNN != []): neurons, kernel, stride, padding, channels, height, pooling, convolutions, direction, offset, normalization = CNN
+	elif (TNN != []): neurons, width_embedding, width_source_vocabulary, width_target_vocabulary, padding_index, heads, width_encoder, width_decoder, expansion, dropout_percent, maximum = TNN
 	elif (ANN != []): neurons, channels, height = ANN
 	collect, ratio = [], []
 	accuracy, residual = [], []
@@ -261,7 +261,6 @@ def learn(trainer, functions, learning_rate, episodes, cost, propagator, ANN = [
 		for index, pair in enumerate(trainer):
 
 			if (TNN != []): x, y = pair[0].to(device), pair[1].to(device)
-			# if (TNN != []): x, y = pair
 			else: x, y = pair.src.to(device), pair.trg.to(device)
 			optimizer.zero_grad()
 			prediction = model(x) if (TNN == []) else model(x, y[:-1])
