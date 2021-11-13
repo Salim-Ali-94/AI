@@ -1,10 +1,10 @@
 from PIL import Image
 import pandas as pd
 import numpy as np
-import spacy, itertools, torch, cv2, imutils
+import itertools, cv2, imutils
+import torch, torchvision, os
 import torch.nn as NN
 import torch.optim as solver
-import torch, torchvision, os
 from torch.utils.data import DataLoader as loader
 from torch.utils.data import Dataset
 from torch.utils.data import TensorDataset as group
@@ -232,7 +232,7 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	assert (ANN != []) | (CNN != []) | (TNN != []), "A MODEL ARCHITECTURE IS REQUIRED"
 	if (CNN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, neurons, channels, height, offset = CNN
 	elif (TNN != []): width_embedding, width_source_vocabulary, width_target_vocabulary, width_encoder, width_decoder, padding_index, heads, expansion, drop_percent, maximum = TNN
-	elif (ANN != []): neurons, functions, channels, height = ANN
+	elif (ANN != []): neurons, functions = ANN
 	collect, ratio = [], []
 	accuracy, residual = [], []
 	score, deviation = [], []
@@ -240,7 +240,7 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	correct, incorrect = 0, 0
 	Y, labels, flag = [], [], False
 	if (type(cost) == str): functions[-1] = "" if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1])) else functions[-1]
-	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channels, pooling, direction, offset, normalization, flatten, unflatten).to(device) if (CNN != []) else TransformerNeuralNetwork(width_embedding, width_source_vocabulary, width_target_vocabulary, width_encoder, width_decoder, padding_index, heads, expansion, maximum, drop_percent).to(device) if (TNN != []) else ArtificialNeuralNetwork(neurons, functions, None, flatten, unflatten, channels, height).to(device)
+	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channels, pooling, direction, offset, normalization, flatten, unflatten).to(device) if (CNN != []) else TransformerNeuralNetwork(width_embedding, width_source_vocabulary, width_target_vocabulary, width_encoder, width_decoder, padding_index, heads, expansion, maximum, drop_percent).to(device) if (TNN != []) else ArtificialNeuralNetwork(neurons, functions, None, flatten, unflatten).to(device)
 	if (type(propagator) == str): optimizer = algorithm(model, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	elif (propagator[0].lower().rstrip().lstrip() in optimization): optimizer = algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, beta = propagator[1]) if (propagator[0].lower().rstrip().lstrip() == "adam") else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, momentum = propagator[1]) if ((propagator[0].lower().rstrip().lstrip() == "sgd") | (propagator[0].lower().rstrip().lstrip() == "rms")) else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate) if (propagator[0].lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	error = cost if callable(cost) else criterion([utility[cost[0].lower().rstrip().lstrip() if (cost[0].lower().rstrip().lstrip() in utility) else "crossentropy" if (neurons[-1] > 1) else "mse"], cost[1]]) if ((type(cost) != str) & (TNN == [])) else criterion([utility[cost[0].lower().rstrip().lstrip() if (cost[0].lower().rstrip().lstrip() in utility) else "crossentropy"], cost[1]]) if ((type(cost) != str) & (TNN != [])) else criterion(utility[cost.lower().rstrip().lstrip()]) if (cost.lower().rstrip().lstrip() in utility) else criterion(utility["crossentropy" if (neurons[-1] > 1) else "mse"]) if ((TNN == []) & (type(cost) == str)) else criterion(utility["crossentropy"]) if ((TNN != []) & (type(cost) == str)) else criterion(utility["mse"])
@@ -252,7 +252,7 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	print(), print("*"*120)
 	print(), print("MODEL ARCHITECTURE")
 	print(), print("*"*120)
-	try: print(), print(summary(model, (channels, height, height))) if (CNN != []) else print(summary(model, (heads, width_embedding))) if (TNN != []) else print(summary(model, (channels, height*height))) if (ANN != [])
+	try: print(), print(summary(model, (channels, height, height))) if (CNN != []) else print(summary(model, (heads, width_embedding))) if (TNN != []) else print(summary(model, (1, neurons[0]))) if (ANN != [])
 	except: print(), print(model)
 	print(), print("*"*120)
 
@@ -320,8 +320,8 @@ def train(trainer, learning_rate, episodes, cost, propagator, GAN = [], DCGAN = 
 	decide_real, decide_fake, detect_real, detect_fake = [], [], [], []
 	real_detection, fake_detection, generator_error, critic_error = [], [], [], []
 	if ((type(cost) == str) & (GAN != [])): functions[0][-1], functions[1][-1] = "" if ((neurons[0][-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[0][-1])) else functions[0][-1], "" if ((neurons[1][-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[1][-1])) else functions[1][-1]
-	generator = ConvolutionalNeuralNetwork(kernel[0], stride[0], padding[0], height, convolutions[0], functions[0], channels = channels, pooling = pooling, direction = direction[0], offset = offset[0], normalization = normalization[0], flatten = flatten[0], unflatten = unflatten[0]).to(device) if (ANN == []) else ArtificialNeuralNetwork(neurons[0], functions[0], unflatten = True, channels = channels, height = height).to(device)
-	critic = ConvolutionalNeuralNetwork(kernel[1], stride[1], padding[1], height, convolutions[1], functions[1], channels = channels, pooling = pooling, direction = direction[1], offset = offset[1], normalization = normalization[1], flatten = flatten[1], unflatten = unflatten[1]).to(device) if (ANN == []) else ArtificialNeuralNetwork(neurons[1], functions[1], flatten = True, channels = channels, height = height).to(device)
+	generator = ConvolutionalNeuralNetwork(kernel[0], stride[0], padding[0], height, convolutions[0], functions[0], channels = channels, pooling = pooling, direction = direction[0], offset = offset[0], normalization = normalization[0], flatten = flatten[0], unflatten = unflatten[0]).to(device) if (ANN == []) else ArtificialNeuralNetwork(neurons[0], functions[0], unflatten = True).to(device)
+	critic = ConvolutionalNeuralNetwork(kernel[1], stride[1], padding[1], height, convolutions[1], functions[1], channels = channels, pooling = pooling, direction = direction[1], offset = offset[1], normalization = normalization[1], flatten = flatten[1], unflatten = unflatten[1]).to(device) if (ANN == []) else ArtificialNeuralNetwork(neurons[1], functions[1], flatten = True).to(device)
 	if (type(propagator) == str): optimizer_generator, optimizer_critic = algorithm(generator, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(generator, optimization["adam"], learning_rate), algorithm(critic, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(critic, optimization["adam"], learning_rate)
 	elif (propagator[0].lower().rstrip().lstrip() in optimization): optimizer_generator, optimizer_critic = algorithm(generator, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, beta = propagator[1]) if (propagator[0].lower().rstrip().lstrip() == "adam") else algorithm(generator, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, momentum = propagator[1]) if ((propagator[0].lower().rstrip().lstrip() == "sgd") | (propagator[0].lower().rstrip().lstrip() == "rms")) else algorithm(generator, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate) if (propagator[0].lower().rstrip().lstrip() in optimization) else algorithm(generator, optimization["adam"], learning_rate), algorithm(critic, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, beta = propagator[1]) if (propagator[0].lower().rstrip().lstrip() == "adam") else algorithm(critic, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, momentum = propagator[1]) if ((propagator[0].lower().rstrip().lstrip() == "sgd") | (propagator[0].lower().rstrip().lstrip() == "rms")) else algorithm(critic, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate) if (propagator[0].lower().rstrip().lstrip() in optimization) else algorithm(critic, optimization["adam"], learning_rate)
 	error = cost if callable(cost) else criterion([utility[cost[0].lower().rstrip().lstrip() if (cost[0].lower().rstrip().lstrip() in utility) else "bce"], cost[1]]) if (type(cost) != str) else criterion(utility[cost.lower().rstrip().lstrip()]) if (cost.lower().rstrip().lstrip() in utility) else criterion(utility["bce"])
@@ -627,40 +627,3 @@ def gradient_penalty(critic, real_image, fake_image):
 	average = gradient.norm(2, dim = 1)
 	penalty = torch.mean((average - 1)**2)
 	return penalty
-
-def translate(model, sentence, language_input, language_output, source, maximum = 50):
-
-	input_language_model = spacy.load(language[source.lower().lstrip().rstrip()]) if (source.lower().lstrip().rstrip() in language) else spacy.load(language["german"])
-	if (type(sentence) == str): tokens = [token.text.lower() for token in input_language_model(sentence)]
-	else: tokens = [token.lower() for token in sentence]
-	tokens.insert(0, language_input.init_token)
-	tokens.append(language_input.eos_token)
-	text_to_index = [language_input.vocab.stoi[token] for token in tokens]
-	guess = torch.LongTensor(text_to_index).unsqueeze(1).to(device)
-	outputs = [language_output.vocab.stoi["<sos>"]]
-
-	for index in range(maximum):
-
-		target = torch.LongTensor(outputs).unsqueeze(1).to(device)
-		with torch.no_grad(): prediction = model(guess, target)
-		best = prediction.argmax(2)[-1, :].item()
-		outputs.append(best)
-		if (best == language_output.vocab.stoi["<eos>"]): break
-
-	translation = [language_output.vocab.itos[item] for item in outputs]
-	return translation[1:]
-
-def bleu(model, data, language_input, language_output):
-
-	targets, outputs = [], []
-
-	for example in data:
-
-		source = vars(example)["src"]
-		target = vars(example)["trg"]
-		prediction = translate(model, source, language_input, language_output)
-		prediction = prediction[:-1]
-		targets.append([target])
-		outputs.append(prediction)
-
-	return bleu_score(outputs, targets)
