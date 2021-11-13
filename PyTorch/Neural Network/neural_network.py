@@ -260,7 +260,7 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 
 		for index, pair in enumerate(trainer):
 
-			if (TNN != []): x, y = pair[0].to(device), pair[1].to(device)
+			if (TNN == []): x, y = pair[0].to(device), pair[1].to(device)
 			else: x, y = pair.src.to(device), pair.trg.to(device)
 			optimizer.zero_grad()
 			prediction = model(x) if (TNN == []) else model(x, y[:-1])
