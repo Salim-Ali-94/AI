@@ -230,9 +230,9 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = [], TNN = [], validater = [], horizon = 0, flatten = False, unflatten = False, show = True):
 
 	assert (ANN != []) | (CNN != []) | (TNN != []), "A MODEL ARCHITECTURE IS REQUIRED"
-	if (CNN != []): neurons, functions, kernel, stride, padding, channels, height, pooling, convolutions, direction, offset, normalization = CNN
+	if (CNN != []): neurons, functions, kernel, stride, padding, channels, height, pooling, convolutions, direction, offset, normalization = CNN if (len(CNN) == 12) else CNN.insert(0, []) if (len(CNN) == 11) else CNN.insert(0, []).insert(0, [])
 	elif (TNN != []): width_embedding, width_source_vocabulary, width_target_vocabulary, padding_index, heads, width_encoder, width_decoder, expansion, drop_percent, maximum = TNN
-	elif (ANN != []): neurons, functions, channels, height = ANN
+	elif (ANN != []): neurons, functions, channels, height = ANN if (len(ANN) == 4) else ANN.insert(0, []) if (len(ANN) == 3) else ANN.insert(0, []).insert(0, [])
 	collect, ratio = [], []
 	accuracy, residual = [], []
 	score, deviation = [], []
@@ -319,7 +319,7 @@ def train(trainer, functions, learning_rate, episodes, cost, propagator, GAN = [
 	collect_generator, collect_critic, error_generator, error_critic = [], [], [], []
 	decide_real, decide_fake, detect_real, detect_fake = [], [], [], []
 	real_detection, fake_detection, generator_error, critic_error = [], [], [], []
-	if ((type(cost) == str) & (neurons != [])): functions[0][-1], functions[1][-1] = "" if ((neurons[0][-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[0][-1])) else functions[0][-1], "" if ((neurons[1][-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[1][-1])) else functions[1][-1]
+	if ((type(cost) == str) & (GAN != [])): functions[0][-1], functions[1][-1] = "" if ((neurons[0][-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[0][-1])) else functions[0][-1], "" if ((neurons[1][-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[1][-1])) else functions[1][-1]
 	generator = ConvolutionalNeuralNetwork(kernel[0], stride[0], padding[0], height, convolutions[0], functions[0], channels = channels, pooling = pooling, direction = direction[0], offset = offset[0], normalization = normalization[0], flatten = flatten[0], unflatten = unflatten[0]).to(device) if (ANN == []) else ArtificialNeuralNetwork(neurons[0], functions[0], unflatten = True, channels = channels, height = height).to(device)
 	critic = ConvolutionalNeuralNetwork(kernel[1], stride[1], padding[1], height, convolutions[1], functions[1], channels = channels, pooling = pooling, direction = direction[1], offset = offset[1], normalization = normalization[1], flatten = flatten[1], unflatten = unflatten[1]).to(device) if (ANN == []) else ArtificialNeuralNetwork(neurons[1], functions[1], flatten = True, channels = channels, height = height).to(device)
 	if (type(propagator) == str): optimizer_generator, optimizer_critic = algorithm(generator, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(generator, optimization["adam"], learning_rate), algorithm(critic, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(critic, optimization["adam"], learning_rate)
