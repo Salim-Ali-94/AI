@@ -227,12 +227,12 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 	return trainer, tester, validater
 
 
-def learn(trainer, functions, learning_rate, episodes, cost, propagator, ANN = [], CNN = [], TNN = [], validater = [], horizon = 0, flatten = False, unflatten = False, show = True):
+def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = [], TNN = [], validater = [], horizon = 0, flatten = False, unflatten = False, show = True):
 
 	assert (ANN != []) | (CNN != []) | (TNN != []), "A MODEL ARCHITECTURE IS REQUIRED"
-	if (CNN != []): neurons, kernel, stride, padding, channels, height, pooling, convolutions, direction, offset, normalization = CNN
-	elif (TNN != []): neurons, width_embedding, width_source_vocabulary, width_target_vocabulary, padding_index, heads, width_encoder, width_decoder, expansion, dropout_percent, maximum = TNN
-	elif (ANN != []): neurons, channels, height = ANN
+	if (CNN != []): neurons, functions, kernel, stride, padding, channels, height, pooling, convolutions, direction, offset, normalization = CNN
+	elif (TNN != []): width_embedding, width_source_vocabulary, width_target_vocabulary, padding_index, heads, width_encoder, width_decoder, expansion, drop_percent, maximum = TNN
+	elif (ANN != []): neurons, functions, channels, height = ANN
 	collect, ratio = [], []
 	accuracy, residual = [], []
 	score, deviation = [], []
@@ -240,7 +240,7 @@ def learn(trainer, functions, learning_rate, episodes, cost, propagator, ANN = [
 	correct, incorrect = 0, 0
 	Y, labels, flag = [], [], False
 	if (type(cost) == str): functions[-1] = "" if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1])) else functions[-1]
-	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channels, pooling, direction, offset, normalization, flatten, unflatten).to(device) if (CNN != []) else TransformerNeuralNetwork(width_embedding, width_source_vocabulary, width_target_vocabulary, padding_index, heads, width_encoder, width_decoder, expansion, dropout_percent, maximum).to(device) if (TNN != []) else ArtificialNeuralNetwork(neurons, functions, None, flatten, unflatten, channels, height).to(device)
+	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channels, pooling, direction, offset, normalization, flatten, unflatten).to(device) if (CNN != []) else TransformerNeuralNetwork(width_embedding, width_source_vocabulary, width_target_vocabulary, padding_index, heads, width_encoder, width_decoder, expansion, drop_percent, maximum).to(device) if (TNN != []) else ArtificialNeuralNetwork(neurons, functions, None, flatten, unflatten, channels, height).to(device)
 	if (type(propagator) == str): optimizer = algorithm(model, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	elif (propagator[0].lower().rstrip().lstrip() in optimization): optimizer = algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, beta = propagator[1]) if (propagator[0].lower().rstrip().lstrip() == "adam") else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, momentum = propagator[1]) if ((propagator[0].lower().rstrip().lstrip() == "sgd") | (propagator[0].lower().rstrip().lstrip() == "rms")) else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate) if (propagator[0].lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	error = cost if callable(cost) else criterion(utility[cost.lower().rstrip().lstrip()]) if (cost.lower().rstrip().lstrip() in utility) else criterion(utility["crossentropy"]) if (neurons[-1] > 1) else criterion(utility["mse"])
