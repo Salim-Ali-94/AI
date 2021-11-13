@@ -140,7 +140,7 @@ class ImageData(Dataset):
 	
 	def __len__(self):
 		
-		self.y.shape[0]
+		self.category.shape[0]
 
 
 
