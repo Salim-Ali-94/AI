@@ -231,7 +231,7 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 
 	assert (ANN != []) | (CNN != []) | (TNN != []), "A MODEL ARCHITECTURE IS REQUIRED"
 	if (CNN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, neurons, channels, height, offset = CNN
-	elif (TNN != []): width_embedding, width_source_vocabulary, width_target_vocabulary, padding_index, heads, width_encoder, width_decoder, expansion, drop_percent, maximum = TNN
+	elif (TNN != []): width_embedding, width_source_vocabulary, width_target_vocabulary, width_encoder, width_decoder, padding_index, heads, expansion, drop_percent, maximum = TNN
 	elif (ANN != []): neurons, functions, channels, height = ANN
 	collect, ratio = [], []
 	accuracy, residual = [], []
