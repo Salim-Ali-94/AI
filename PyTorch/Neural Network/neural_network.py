@@ -120,25 +120,28 @@ class TransformerNeuralNetwork(NN.Module):
 
 class ImageData(Dataset):
 
-	__len__ = lambda self: self.y.shape[0]
-
 	def __init__(self, csv_folder, image_folder, transform = None, grey = False, flag = False, row = None):
 
-		df = pd.read_csv(csv_folder, header = row)
+		data = pd.read_csv(csv_folder, header = row)
 		self.image_folder = image_folder
-		self.image_labels = df.iloc[:, 0].values
-		if (flag == False): self.y = df.iloc[:, 1].values
-		else: self.y = data.iloc[:, -1:].values
+		self.labels = data.iloc[:, 0].values
+		if (flag == False): self.category = data.iloc[:, 1].values
+		else: self.category = data.iloc[:, -1:].values
 		self.transform = transform
 		self.grey = grey
 
 	def __getitem__(self, index):
 
-		if (self.grey == True): image = Image.open(os.path.join(self.image_folder, self.image_labels[index])).convert('L')
-		else: image = Image.open(os.path.join(self.image_folder, self.image_labels[index]))
+		if (self.grey == True): image = Image.open(os.path.join(self.image_folder, self.labels[index])).convert("L")
+		else: image = Image.open(os.path.join(self.image_folder, self.labels[index]))
 		if self.transform is not None: image = self.transform(image)
-		label = self.y[index]
+		label = self.category[index]
 		return image, label
+	
+	def __len__(self):
+		
+		self.y.shape[0]
+
 
 
 def scale(data, minimum, maximum): 
