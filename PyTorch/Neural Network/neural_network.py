@@ -21,7 +21,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
 
 activation = {"relu": "ReLU", "tanh": "Tanh", "sigmoid": "Sigmoid", "softmax": "Softmax", "logsoftmax": "LogSoftmax", "leaky": "LeakyReLU"}
-utility = {"nll": "NLLLoss", "bce": "BCELoss", "mse": "MSELoss", "crossentropy": "CrossEntropyLoss"}
+utility = {"nll": "NLLLoss", "bce": "BCELoss", "mse": "MSELoss", "ce": "CrossEntropyLoss"}
 optimization = {"adam": "Adam", "rms": "RMSProp", "sgd": "SGD"}
 dataset = {"mnist": "MNIST", "cifar": "CIFAR10", "celeb": "CelebA", "fashion": "FashionMNIST", "emnist": "EMNIST"}
 normalizer = {"batch": "BatchNorm2d", "instance": "InstanceNorm2d", "layer": "LayerNorm2d"}
