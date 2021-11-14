@@ -238,13 +238,13 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	score, deviation = [], []
 	batch_accuracy, batch_error = [], []
 	correct, incorrect = 0, 0
-	Y, labels, flag = [], [], False
+	Y, flag = [], False
 	if (type(cost) == str): functions[-1] = "" if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1])) else functions[-1]
 	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channels, pooling, direction, offset, normalization, flatten, unflatten).to(device) if (CNN != []) else TransformerNeuralNetwork(width_embedding, width_source_vocabulary, width_target_vocabulary, width_encoder, width_decoder, padding_index, heads, expansion, maximum, drop_percent).to(device) if (TNN != []) else ArtificialNeuralNetwork(neurons, functions, None, flatten, unflatten).to(device)
 	if (type(propagator) == str): optimizer = algorithm(model, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	elif (propagator[0].lower().rstrip().lstrip() in optimization): optimizer = algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, beta = propagator[1]) if (propagator[0].lower().rstrip().lstrip() == "adam") else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, momentum = propagator[1]) if ((propagator[0].lower().rstrip().lstrip() == "sgd") | (propagator[0].lower().rstrip().lstrip() == "rms")) else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate) if (propagator[0].lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	error = cost if callable(cost) else criterion([utility[cost[0].lower().rstrip().lstrip() if (cost[0].lower().rstrip().lstrip() in utility) else "crossentropy" if (neurons[-1] > 1) else "mse"], cost[1]]) if ((type(cost) != str) & (TNN == [])) else criterion([utility[cost[0].lower().rstrip().lstrip() if (cost[0].lower().rstrip().lstrip() in utility) else "crossentropy"], cost[1]]) if ((type(cost) != str) & (TNN != [])) else criterion(utility[cost.lower().rstrip().lstrip()]) if (cost.lower().rstrip().lstrip() in utility) else criterion(utility["crossentropy" if (neurons[-1] > 1) else "mse"]) if ((TNN == []) & (type(cost) == str)) else criterion(utility["crossentropy"]) if ((TNN != []) & (type(cost) == str)) else criterion(utility["mse"])
-	if (TNN == []): Y += list(itertools.chain.from_iterable([element.item() for element in [y for x, y in trainer]])) if (neurons[-1] == 1) else Y
+	if (TNN == []): Y += list(itertools.chain.from_iterable([element.item() for element in [y for x, y in trainer][0]])) if (neurons[-1] == 1) else Y
 	labels = list(set(Y))
 	mode = True if (TNN != []) else False
 	model.train()
@@ -436,7 +436,7 @@ def plot(data, colour, name, x, y, compare = False):
 def test(model, data, output):
 
 	correct, incorrect, Y = 0, 0, []
-	for x, y in data: Y += [y[index].item() for index in range(len(y))]
+	if (output == 1): Y += list(itertools.chain.from_iterable([element.item() for element in [y for x, y in trainer][0]]))
 	labels = list(set(Y))
 	model.eval()
 
