@@ -252,7 +252,7 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	print(), print("*"*120)
 	print(), print("MODEL ARCHITECTURE")
 	print(), print("*"*120)
-	try: print(), print(summary(model, (channels, height, height))) if (CNN != []) else print(summary(model, (heads, width_embedding))) if (TNN != []) else print(summary(model, (1, neurons[0]))) if (ANN != [])
+	try: print(), print(summary(model, (channels, height, height))) if (CNN != []) else print(summary(model, (heads, width_embedding))) if (TNN != []) else print(summary(model, (1, neurons[0])))
 	except: print(), print(model)
 	print(), print("*"*120)
 
