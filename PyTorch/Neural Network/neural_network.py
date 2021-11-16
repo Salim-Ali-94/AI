@@ -1,6 +1,7 @@
 from PIL import Image
 import pandas as pd
 import numpy as np
+from math import factorial
 import itertools, cv2, imutils
 import torch, torchvision, os
 import torch.nn as NN
@@ -15,7 +16,6 @@ import torchvision.datasets as datasets
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 from torchsummary import summary
-from torchtext.data.metrics import bleu_score
 plt.rcParams["font.family"] = "Arial"
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
@@ -143,7 +143,6 @@ class ImageData(Dataset):
 		self.category.shape[0]
 
 
-
 def scale(data, minimum, maximum): 
 
 	high, low = max(data) if (type(data) != torch.Tensor) else data.max().item(), min(data) if (type(data) != torch.Tensor) else data.min().item()
@@ -153,12 +152,13 @@ def scale(data, minimum, maximum):
 	return data
 
 
-def extract(file, directory = None, encoding = None, convert = [], output = None, label = None, flag = None):
+def extract(file, directory = None, encoding = None, convert = [], rows = [], columns = [], output = None, label = None, flag = None):
 
 	if (directory == None):
 
 		ticket = 0 if (label != None) else None
 		data = pd.read_csv(f"{file}", header = ticket)
+		data = truncate(data, rows, columns, label)
 		dimension = len(data.iloc[0]) - 1
 		mapping = {encoding[index][0]: encoding[index][1] for index in range(len(encoding))}
 		if (label != None): data[f"{label}"] = data[f"{label}"].apply(lambda index: mapping[index])
@@ -186,12 +186,12 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 
 	train_percent = training_percentage / 100
 	validate_percent = validation_percentage / 100
-	test_percent = 1 - (train_percent + validate_percent)
+	test_percent = round(1 - (train_percent + validate_percent), 1)
 	if ((output == 1) & (isinstance(categories[0], np.ndarray) == False) & (flag == False)): categories = categories.reshape((len(categories), -1))
 	training_x, training_y = characteristics, categories
 	train_x, train_y = torch.FloatTensor(training_x), training_y
 	if (output > 1): train_y = torch.LongTensor(training_y)
-	elif (output == 1): train_y = training_y.float()
+	elif (output == 1): train_y = torch.FloatTensor(training_y)
 	train = group(train_x, train_y)
 	trainer = loader(dataset = train, batch_size = batch, shuffle = True, num_workers = 2)
 	tester, validater = None, None
@@ -201,25 +201,31 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 		training_x, testing_x, training_y, testing_y = split(characteristics, categories, test_size = test_percent, random_state = np.random.randint(1, 100), shuffle = True, stratify = categories)
 		train_x = torch.FloatTensor(training_x)
 		if (output > 1): train_y = torch.LongTensor(training_y)
+		elif (output == 1): train_y = torch.FloatTensor(training_y)
 		else: train_y = training_y.float()
 		train = group(train_x, train_y)
 		trainer = loader(dataset = train, batch_size = batch, shuffle = True, num_workers = 2)
 		test_x = torch.FloatTensor(testing_x)
 		if (output > 1): test_y = torch.LongTensor(testing_y)
+		elif (output == 1): test_y = torch.FloatTensor(testing_y)
 		else: test_y = testing_y.float()
 		test = group(test_x, test_y)
 		tester = loader(dataset = test, batch_size = batch, shuffle = True, num_workers = 2)
+		validate_percent = (validation_percentage*len(characteristics) / len(train_x)) / 100
+		print(len(train_x), len(test_x), len(test_x) + len(train_x), validate_percent)
 
 	if (validate_percent > 0):
 
 		training_x, validation_x, training_y, validation_y = split(training_x, training_y, test_size = validate_percent, random_state = np.random.randint(1, 100), shuffle = True, stratify = training_y)
 		train_x = torch.FloatTensor(training_x)
 		if (output > 1): train_y = torch.LongTensor(training_y)
+		elif (output == 1): train_y = torch.FloatTensor(training_y)
 		else: train_y = training_y.float()
 		train = group(train_x, train_y)
 		trainer = loader(dataset = train, batch_size = batch, shuffle = True, num_workers = 2)
 		validate_x = torch.FloatTensor(validation_x)
 		if (output > 1): validate_y = torch.LongTensor(validation_y)
+		elif (output == 1): validate_y = torch.FloatTensor(validation_y)
 		else: validate_y = validation_y.float()
 		validate = group(validate_x, validate_y)
 		validater = loader(dataset = validate, batch_size = batch, shuffle = True, num_workers = 2)
@@ -237,15 +243,15 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	accuracy, residual = [], []
 	score, deviation = [], []
 	batch_accuracy, batch_error = [], []
+	batch_residual, batch_score = [], []
 	correct, incorrect = 0, 0
-	Y, flag = [], False
+	labels, flag = [], False
 	if (type(cost) == str): functions[-1] = "" if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1])) else functions[-1]
 	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channels, pooling, direction, offset, normalization, flatten, unflatten).to(device) if (CNN != []) else TransformerNeuralNetwork(width_embedding, width_source_vocabulary, width_target_vocabulary, width_encoder, width_decoder, padding_index, heads, expansion, maximum, drop_percent).to(device) if (TNN != []) else ArtificialNeuralNetwork(neurons, functions, None, flatten, unflatten).to(device)
 	if (type(propagator) == str): optimizer = algorithm(model, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	elif (propagator[0].lower().rstrip().lstrip() in optimization): optimizer = algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, beta = propagator[1]) if (propagator[0].lower().rstrip().lstrip() == "adam") else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, momentum = propagator[1]) if ((propagator[0].lower().rstrip().lstrip() == "sgd") | (propagator[0].lower().rstrip().lstrip() == "rms")) else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate) if (propagator[0].lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	error = cost if callable(cost) else criterion([utility[cost[0].lower().rstrip().lstrip() if (cost[0].lower().rstrip().lstrip() in utility) else "crossentropy" if (neurons[-1] > 1) else "mse"], cost[1]]) if ((type(cost) != str) & (TNN == [])) else criterion([utility[cost[0].lower().rstrip().lstrip() if (cost[0].lower().rstrip().lstrip() in utility) else "crossentropy"], cost[1]]) if ((type(cost) != str) & (TNN != [])) else criterion(utility[cost.lower().rstrip().lstrip()]) if (cost.lower().rstrip().lstrip() in utility) else criterion(utility["crossentropy" if (neurons[-1] > 1) else "mse"]) if ((TNN == []) & (type(cost) == str)) else criterion(utility["crossentropy"]) if ((TNN != []) & (type(cost) == str)) else criterion(utility["mse"])
-	if (TNN == []): Y += list(itertools.chain.from_iterable([element.item() for element in [y for x, y in trainer][0]])) if (neurons[-1] == 1) else Y
-	labels = list(set(Y))
+	if (TNN == []): labels += list(set([element.item() for element in list(itertools.chain.from_iterable([y for x, y in trainer]))])) if (neurons[-1] == 1) else labels
 	mode = True if (TNN != []) else False
 	model.train()
 	os.system("cls")
@@ -275,12 +281,12 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 
 				for cycle in range(len(prediction)):
 
-					if (neurons[-1] > 1): 
+					if (neurons[-1] > 1):
 
-						if (torch.argmax(prediction[cycle]) == y[cycle]): correct += 1 
+						if (torch.argmax(prediction[cycle]) == y[cycle]): correct += 1
 						else: incorrect += 1
 
-					elif (neurons[-1] == 1): 
+					elif (neurons[-1] == 1):
 
 						if (min(labels, key = lambda x: abs(x - prediction[cycle].item())) == y[cycle].item()): correct += 1
 						else: incorrect += 1
@@ -292,7 +298,7 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 
 		residual.append(sum(collect) / len(collect))
 		if (TNN == []): accuracy.append(sum(ratio) / len(ratio))
-		if (validater != []): model, deviation, score, flag = validate(model, validater, error, horizon, residual[-1], episodes, labels, mode)
+		if (validater != []): model, deviation, score, batch_residual, batch_score, flag = validate(model, validater, error, horizon, residual[-1], episodes, labels, mode)
 		collect, ratio = [], []
 		correct, incorrect = 0, 0
 		if ((show == False) & (flag == True)): break
@@ -306,7 +312,7 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 			else: print("Training error:", round(residual[-1], 4)), print("Validation error:", round(deviation[-1], 4)), print("Training accuracy:", round(accuracy[-1], 4)), print("Validation accuracy:", round(score[-1], 4))
 			if (flag == True): break
 
-	return model, residual, accuracy, deviation, score
+	return model, residual, accuracy, batch_error, batch_accuracy, deviation, score, batch_residual, batch_score
 
 
 def train(trainer, learning_rate, episodes, cost, propagator, GAN = [], DCGAN = [], DCWGANGP = [], flatten = [], unflatten = [], show = True):
@@ -433,11 +439,9 @@ def plot(data, colour, name, x, y, compare = False):
 	plt.show()
 
 
-def test(model, data, output):
+def test(model, data):
 
-	correct, incorrect, Y = 0, 0, []
-	if (output == 1): Y += list(itertools.chain.from_iterable([element.item() for element in [y for x, y in trainer][0]]))
-	labels = list(set(Y))
+	correct, incorrect, labels = 0, 0, []
 	model.eval()
 
 	with torch.no_grad():
@@ -445,15 +449,16 @@ def test(model, data, output):
 		for index, (x, y) in enumerate(data):
 
 			prediction = model(x)
+			if ((index == 0) & (prediction.shape[-1] == 1)): labels += list(set([element.item() for element in list(itertools.chain.from_iterable([y for x, y in data]))]))
 
 			for cycle in range(len(prediction)):
 
-				if (output > 1):
+				if (prediction.shape[-1] > 1):
 
 					if (torch.argmax(prediction[cycle]) == y[cycle]): correct += 1 
 					else: incorrect += 1
 
-				elif (output == 1):
+				elif (prediction.shape[-1] == 1):
 
 					if (min(labels, key = lambda x: abs(x - prediction[cycle].item())) == y[cycle].item()): correct += 1
 					else: incorrect += 1
@@ -505,10 +510,11 @@ def evaluate(model, image_size, LUT, channel):
 
 def validate(model, validater, error, horizon, residual, episodes, labels = [], mode = False):
 	
-	if not all(hasattr(validate, item) for item in ["epoch", "cost_validation", "cost_training", "period", "increment", "history", "checkpoint", "cycle", "cost", "accuracy", "error_validation", "error_training"]):
+	if not all(hasattr(validate, item) for item in ["epoch", "cost_validation", "cost_training", "period", "increment", "history", "checkpoint", "cycle", "cost", "accuracy", "error_validation", "error_training", "batch_cost", "batch_accuracy"]):
 
 		validate.epoch, validate.increment = 0, 0
 		validate.cost, validate.accuracy = [], []
+		validate.batch_cost, validate.batch_accuracy = [], []
 		validate.cost_validation, validate.cost_training = [], []
 		validate.error_validation, validate.error_training = 0, 0
 		validate.period = horizon + validate.increment*(horizon + 1)
@@ -517,7 +523,7 @@ def validate(model, validater, error, horizon, residual, episodes, labels = [], 
 	if ((validate.epoch == 0) | (validate.epoch == validate.history + 1)): torch.save(model, "ANN.pth")
 	if ((validate.epoch == 0) | (validate.epoch == validate.history + 1)): validate.history = validate.period
 	flag, correct, incorrect = False, 0, 0
-	batch_error, batch_accuracy = [], []
+	batch_error, batch_score = [], []
 	count, counter = 0, 0
 	model.eval()
 	
@@ -529,6 +535,7 @@ def validate(model, validater, error, horizon, residual, episodes, labels = [], 
 			else: x, y = pair.src.to(device), pair.trg.to(device)
 			prediction = model(x) if (mode == False) else model(x, y[:-1])
 			loss = error(prediction, y) if (mode == False) else error(prediction.reshape(-1, prediction.shape[2]), y[1:].reshape(-1))
+			validate.batch_cost.append(loss.item())
 			batch_error.append(loss.item())
 			if (mode == True): torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm = 1)
 
@@ -547,14 +554,14 @@ def validate(model, validater, error, horizon, residual, episodes, labels = [], 
 						else: incorrect += 1
 
 				total = correct + incorrect
-				batch_accuracy.append(correct / total)
+				validate.batch_accuracy.append(correct / total)
+				batch_score.append(correct / total)
 				correct, incorrect = 0, 0
 
 	model.train()
 	validate.cost.append(sum(batch_error) / len(batch_error))
-	if (mode == False): validate.accuracy.append(sum(batch_accuracy) / len(batch_accuracy))
-	if ((validate.epoch == 0) | (validate.epoch == validate.cycle + 1)): validate.error_validation, validate.error_training = validate.cost[-1], residual
-	if ((validate.epoch == 0) | (validate.epoch == validate.cycle + 1)): validate.cycle = validate.period
+	if (mode == False): validate.accuracy.append(sum(batch_score) / len(batch_score))
+	if ((validate.epoch == 0) | (validate.epoch == validate.cycle + 1)): validate.error_validation, validate.error_training, validate.cycle = validate.cost[-1], residual, validate.period
 	if (((validate.epoch > 0) & (validate.epoch <= horizon)) | ((validate.epoch >= validate.checkpoint + 2) & (validate.epoch <= validate.period))): validate.cost_validation.append(validate.cost[-1]), validate.cost_training.append(residual)
 	if (validate.epoch == validate.period): validate.checkpoint = validate.period
 
@@ -562,7 +569,7 @@ def validate(model, validater, error, horizon, residual, episodes, labels = [], 
 
 		for item in range(horizon):
 
-			if (validate.cost_training[item] < validate.error_training): counter += 1
+			if (validate.cost_training[item] <= validate.error_training): counter += 1
 			if (validate.cost_validation[item] >= validate.error_validation): count += 1
 			elif (validate.cost_validation[item] < validate.error_validation): break
 
@@ -594,7 +601,7 @@ def validate(model, validater, error, horizon, residual, episodes, labels = [], 
 			flag = True
 
 	validate.epoch += 1
-	return model, validate.cost, validate.accuracy, flag
+	return model, validate.cost, validate.accuracy, validate.batch_cost, validate.batch_accuracy, flag
 
 
 def processor(generator, critic, row, column, size, noise_width, name, flag = False):
@@ -616,6 +623,7 @@ def processor(generator, critic, row, column, size, noise_width, name, flag = Fa
 	plt.savefig(f"{name}.png", dpi = 200)
 	plt.show()
 
+	
 def gradient_penalty(critic, real_image, fake_image):
 
 	batch, channel, height, width = real_image.shape
@@ -627,3 +635,70 @@ def gradient_penalty(critic, real_image, fake_image):
 	average = gradient.norm(2, dim = 1)
 	penalty = torch.mean((average - 1)**2)
 	return penalty
+
+
+def savitzky_golay(data, window, order, derivative = 0, rate = 1):
+
+	try: window, order = np.abs(np.int(window)), np.abs(np.int(order))
+	except ValueError: raise ValueError("window and order must be of type int")
+	if ((window%2 != 1) | window)) < 1: raise TypeError("window size must be a positive odd number")
+	if (window < order + 2): raise TypeError("window is too small for the polynomials order")
+	if (type(data) != np.ndarray): data = np.asarray(data)
+	order_range = range(order + 1)
+	half_window = (window - 1) // 2
+	b = np.mat([[k**index for index in order_range] for k in range(-half_window, half_window + 1)])
+	m = np.linalg.pinv(b).A[derivative]*rate**derivative*factorial(derivative)
+	firstvals = data[0] - np.abs(data[1:half_window + 1][::-1] - data[0] )
+	lastvals = data[-1] + np.abs(data[-half_window - 1:-1][::-1] - data[-1])
+	data = np.concatenate((firstvals, data, lastvals))
+	return np.convolve(m[::-1], data, mode = "valid")
+
+
+def truncate(data, rows = None, columns = [], field = None):
+
+	if (columns != []):
+
+		if (type(columns) == tuple):
+
+			if (type(columns[0]) == int):
+
+				for item in range(sorted(columns)[1] - 1, sorted(columns)[0] - 2, -1): 
+
+					data.drop(data.columns[item], axis = 1, inplace = True)
+
+			elif (type(columns[0]) == str):
+
+				category = list(data.columns)
+				category = (category.index(columns[0]) + 1, category.index(columns[1]) + 1)
+
+				for item in range(sorted(category)[1] - 1, sorted(category)[0] - 2, -1): 
+
+					data.drop(data.columns[item], axis = 1, inplace = True)
+
+		elif (type(columns) == list):
+
+			if (type(columns[0]) == str): 
+
+				for item in columns: 
+
+					data = data.drop(item, axis = 1)
+
+			elif (type(columns[0]) == int):
+
+				for item in sorted(columns, reverse = True): 
+
+					data.drop(data.columns[item - 1], axis = 1, inplace = True)
+
+	if (rows != None):
+
+		if (field != None):
+
+			data = data.loc[data[field] != rows]
+
+		else:
+
+			category = list(data.columns)
+			field = category[-1]
+			data = data.loc[data[field] != rows]
+
+	return data
