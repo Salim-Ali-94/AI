@@ -641,13 +641,13 @@ def savitzky_golay(data, window, order, derivative = 0, rate = 1):
 
 	try: window, order = np.abs(np.int(window)), np.abs(np.int(order))
 	except ValueError: raise ValueError("window and order must be of type int")
-	if ((window%2 != 1) | window)) < 1: raise TypeError("window size must be a positive odd number")
+	if ((window%2 != 1) | window) < 1: raise TypeError("window size must be a positive odd number")
 	if (window < order + 2): raise TypeError("window is too small for the polynomials order")
 	if (type(data) != np.ndarray): data = np.asarray(data)
 	order_range = range(order + 1)
 	half_window = (window - 1) // 2
 	b = np.mat([[k**index for index in order_range] for k in range(-half_window, half_window + 1)])
-	m = np.linalg.pinv(b).A[derivative]*rate**derivative*factorial(derivative)
+	m = np.linalg.pinv(b).A[derivative]*factorial(derivative)*rate**derivative
 	firstvals = data[0] - np.abs(data[1:half_window + 1][::-1] - data[0] )
 	lastvals = data[-1] + np.abs(data[-half_window - 1:-1][::-1] - data[-1])
 	data = np.concatenate((firstvals, data, lastvals))
