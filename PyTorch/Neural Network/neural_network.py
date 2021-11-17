@@ -143,6 +143,7 @@ class ImageData(Dataset):
 		self.category.shape[0]
 
 
+
 def scale(data, minimum, maximum): 
 
 	high, low = max(data) if (type(data) != torch.Tensor) else data.max().item(), min(data) if (type(data) != torch.Tensor) else data.min().item()
@@ -195,6 +196,7 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 	train = group(train_x, train_y)
 	trainer = loader(dataset = train, batch_size = batch, shuffle = True, num_workers = 2)
 	tester, validater = None, None
+	duplicate = validate_percent
 
 	if (test_percent > 0):
 
@@ -212,7 +214,6 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 		test = group(test_x, test_y)
 		tester = loader(dataset = test, batch_size = batch, shuffle = True, num_workers = 2)
 		validate_percent = (validation_percentage*len(characteristics) / len(train_x)) / 100
-		print(len(train_x), len(test_x), len(test_x) + len(train_x), validate_percent)
 
 	if (validate_percent > 0):
 
@@ -229,7 +230,7 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 		else: validate_y = validation_y.float()
 		validate = group(validate_x, validate_y)
 		validater = loader(dataset = validate, batch_size = batch, shuffle = True, num_workers = 2)
-
+		
 	return trainer, tester, validater
 
 
@@ -259,7 +260,7 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	print(), print("MODEL ARCHITECTURE")
 	print(), print("*"*120)
 	try: print(), print(summary(model, (channels, height, height))) if (CNN != []) else print(summary(model, (heads, width_embedding))) if (TNN != []) else print(summary(model, (1, neurons[0])))
-	except: print(), print(model)
+	except Exception as e: print(), print(e), print(), print(model)
 	print(), print("*"*120)
 
 	for epoch in range(episodes):
@@ -430,7 +431,7 @@ def plot(data, colour, name, x, y, compare = False):
 	for spine in axis.spines.values(): spine.set_visible(False)
 	plt.tick_params(axis = "x", which = "both", bottom = False, top = False)
 	plt.tick_params(axis = "y", which = "both", left = False, right = False)
-	if (compare == True): plt.plot(list(range(1, len(data[0]) + 1)), data[0], color = f"{colour[0]}", linewidth = 1, label = f"{name[0]}"), plt.plot(list(range(1, len(data[1]) + 1)), data[1], color = f"{colour[1]}", linewidth = 1, label = f"{name[1]}")
+	if (compare == True): plt.plot(list(range(1, len(data[0]) + 1)), data[0], color = f"{colour[0][0] if (type(colour[0]) != str) else colour[0]}", alpha = colour[0][1] if (type(colour[0]) != str) else 1, linewidth = 1, label = f"{name[0]}"), plt.plot(list(range(1, len(data[1]) + 1)), data[1], color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", alpha = colour[1][1] if (type(colour[1]) != str) else 1, linewidth = 1, label = f"{name[1]}"), plt.scatter([list(range(1, len(data[1]) + 1))[-1]], [data[1][-1]], color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", marker = ".") if ((type(colour[0]) != str) & (type(colour[1]) != str)) else None
 	elif ((type(data[0]) != list) & (type(data[0]) != np.ndarray)): plt.plot(list(range(1, len(data) + 1)), data, color = f"{colour}", linewidth = 1)
 	else: plt.scatter(data[0], data[1], color = f"{colour}", marker = ".", alpha = 0.2)
 	plt.xlabel(f"{x}"), plt.ylabel(f"{y}")
@@ -467,7 +468,7 @@ def test(model, data):
 	if (incorrect == 1): print(f"\nCorrectly labeled {correct} samples and incorrectly labeled {incorrect} sample")
 	elif (correct == 1): print(f"\nCorrectly labeled {correct} sample and incorrectly labeled {incorrect} samples")
 	else: print(f"\nCorrectly labeled {correct} samples and incorrectly labeled {incorrect} samples")
-	print("\nAccuracy:", round(100*(correct / total), 2))
+	print(f"\nAccuracy: {round(100*(correct / total), 2)}%")
 
 
 def evaluate(model, image_size, LUT, channel):
@@ -484,7 +485,6 @@ def evaluate(model, image_size, LUT, channel):
 		(height, width) = frame.shape[:2]
 		box = frame[top:bottom, right:left]
 		grey = cv2.cvtColor(box, cv2.COLOR_BGR2GRAY)
-		grey = cv2.GaussianBlur(grey, (7, 7), 0)
 		grey = cv2.resize(grey, (image_size, image_size))
 		data = torch.Tensor(normalize(grey).reshape(1, channel, image_size, image_size))
 		prediction = model(data)
@@ -510,18 +510,17 @@ def evaluate(model, image_size, LUT, channel):
 
 def validate(model, validater, error, horizon, residual, episodes, labels = [], mode = False):
 	
-	if not all(hasattr(validate, item) for item in ["epoch", "cost_validation", "cost_training", "period", "increment", "history", "checkpoint", "cycle", "cost", "accuracy", "error_validation", "error_training", "batch_cost", "batch_accuracy"]):
+	if not all(hasattr(validate, item) for item in ["epoch", "validation_cost", "training_cost", "period", "increment", "history", "checkpoint", "cycle", "cost", "accuracy", "validation_error", "training_error", "batch_cost", "batch_accuracy"]):
 
 		validate.epoch, validate.increment = 0, 0
 		validate.cost, validate.accuracy = [], []
 		validate.batch_cost, validate.batch_accuracy = [], []
-		validate.cost_validation, validate.cost_training = [], []
-		validate.error_validation, validate.error_training = 0, 0
+		validate.validation_cost, validate.training_cost = [], []
+		validate.validation_error, validate.training_error = 0, 0
 		validate.period = horizon + validate.increment*(horizon + 1)
-		validate.history, validate.checkpoint, validate.cycle = validate.period, validate.period, validate.period
+		validate.history = validate.checkpoint = validate.cycle = validate.period
 
-	if ((validate.epoch == 0) | (validate.epoch == validate.history + 1)): torch.save(model, "ANN.pth")
-	if ((validate.epoch == 0) | (validate.epoch == validate.history + 1)): validate.history = validate.period
+	if ((validate.epoch == 0) | (validate.epoch == validate.history + 1)): _, validate.history = torch.save(model, "ANN.pth"), validate.period
 	flag, correct, incorrect = False, 0, 0
 	batch_error, batch_score = [], []
 	count, counter = 0, 0
@@ -561,21 +560,21 @@ def validate(model, validater, error, horizon, residual, episodes, labels = [], 
 	model.train()
 	validate.cost.append(sum(batch_error) / len(batch_error))
 	if (mode == False): validate.accuracy.append(sum(batch_score) / len(batch_score))
-	if ((validate.epoch == 0) | (validate.epoch == validate.cycle + 1)): validate.error_validation, validate.error_training, validate.cycle = validate.cost[-1], residual, validate.period
-	if (((validate.epoch > 0) & (validate.epoch <= horizon)) | ((validate.epoch >= validate.checkpoint + 2) & (validate.epoch <= validate.period))): validate.cost_validation.append(validate.cost[-1]), validate.cost_training.append(residual)
+	if ((validate.epoch == 0) | (validate.epoch == validate.cycle + 1)): validate.validation_error, validate.training_error, validate.cycle = validate.cost[-1], residual, validate.period
+	if (((validate.epoch > 0) & (validate.epoch <= horizon)) | ((validate.epoch >= validate.checkpoint + 2) & (validate.epoch <= validate.period))): validate.validation_cost.append(validate.cost[-1]), validate.training_cost.append(residual)
 	if (validate.epoch == validate.period): validate.checkpoint = validate.period
 
 	if (validate.epoch == validate.period):
 
 		for item in range(horizon):
 
-			if (validate.cost_training[item] <= validate.error_training): counter += 1
-			if (validate.cost_validation[item] >= validate.error_validation): count += 1
-			elif (validate.cost_validation[item] < validate.error_validation): break
+			if (round(validate.training_cost[item], 4) <= round(validate.training_error, 4)): counter += 1
+			if (round(validate.validation_cost[item], 4) >= round(validate.validation_error, 4)): count += 1
+			elif (round(validate.validation_cost[item], 4) < round(validate.validation_error, 4)): break
 
 		validate.increment += 1
 		validate.period = horizon + validate.increment*(horizon + 1)
-		validate.cost_validation, validate.cost_training = [], []
+		validate.validation_cost, validate.training_cost = [], []
 
 		if ((count == horizon) & (counter >= int(0.8*horizon))): 
 
@@ -623,7 +622,6 @@ def processor(generator, critic, row, column, size, noise_width, name, flag = Fa
 	plt.savefig(f"{name}.png", dpi = 200)
 	plt.show()
 
-	
 def gradient_penalty(critic, real_image, fake_image):
 
 	batch, channel, height, width = real_image.shape
@@ -648,9 +646,9 @@ def savitzky_golay(data, window, order, derivative = 0, rate = 1):
 	half_window = (window - 1) // 2
 	b = np.mat([[k**index for index in order_range] for k in range(-half_window, half_window + 1)])
 	m = np.linalg.pinv(b).A[derivative]*factorial(derivative)*rate**derivative
-	firstvals = data[0] - np.abs(data[1:half_window + 1][::-1] - data[0] )
-	lastvals = data[-1] + np.abs(data[-half_window - 1:-1][::-1] - data[-1])
-	data = np.concatenate((firstvals, data, lastvals))
+	first = data[0] - np.abs(data[1:half_window + 1][::-1] - data[0] )
+	last = data[-1] + np.abs(data[-half_window - 1:-1][::-1] - data[-1])
+	data = np.concatenate((first, data, last))
 	return np.convolve(m[::-1], data, mode = "valid")
 
 
