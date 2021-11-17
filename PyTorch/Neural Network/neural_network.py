@@ -26,7 +26,6 @@ optimization = {"adam": "Adam", "rms": "RMSProp", "sgd": "SGD"}
 dataset = {"mnist": "MNIST", "cifar": "CIFAR10", "celeb": "CelebA", "fashion": "FashionMNIST", "emnist": "EMNIST"}
 normalizer = {"batch": "BatchNorm2d", "instance": "InstanceNorm2d", "layer": "LayerNorm2d"}
 pool = {"average": "AvgPool2d", "max": "MaxPool2d"}
-language = {"english": "en_core_web_sm", "german" : "de_core_news_sm"}
 function = lambda transform, slope = None: getattr(torch.nn, transform)(dim = 1) if ("Softmax" in transform) else getattr(torch.nn, transform)(slope) if (("LeakyReLU" in transform) & (slope != None)) else getattr(torch.nn, transform)()
 criterion = lambda score: getattr(torch.nn, score[0])(ignore_index = score[1]) if (type(score) != str) else getattr(torch.nn, score)()
 algorithm = lambda model, method, learning_rate, momentum = 0, beta = (): getattr(torch.optim, method)(model.parameters(), lr = learning_rate, betas = beta) if (beta != ()) else getattr(torch.optim, method)(model.parameters(), lr = learning_rate, momentum = momentum) if (momentum != 0) else getattr(torch.optim, method)(model.parameters(), lr = learning_rate)
