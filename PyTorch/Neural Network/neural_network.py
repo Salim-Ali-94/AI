@@ -315,11 +315,11 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	return model, residual, accuracy, batch_error, batch_accuracy, deviation, score, batch_residual, batch_score
 
 
-def train(trainer, learning_rate, episodes, cost, propagator, GAN = [], DCGAN = [], DCWGANGP = [], flatten = [], unflatten = [], show = True):
+def train(trainer, learning_rate, episodes, cost, propagator, GAN = [], CGAN = [], CWGAN = [], flatten = [], unflatten = [], show = True):
 
-	assert (GAN != []) | (DCGAN != []) | (DCWGANGP != []), "A MODEL ARCHITECTURE IS REQUIRED"
-	if (DCGAN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, noise_width, channels, height, offset = DCGAN
-	elif (DCWGANGP != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, noise_width, length, lamda, channels, height, offset = DCWGANGP
+	assert (GAN != []) | (CGAN != []) | (CWGAN != []), "A MODEL ARCHITECTURE IS REQUIRED"
+	if (CGAN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, noise_width, channels, height, offset = DCGAN
+	elif (CWGAN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, noise_width, length, lamda, channels, height, offset = DCWGANGP
 	elif (GAN != []): neurons, functions, noise_width = GAN
 	block_error, flag = [], False
 	collect_generator, collect_critic, error_generator, error_critic = [], [], [], []
