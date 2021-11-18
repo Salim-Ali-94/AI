@@ -7,7 +7,7 @@ ________________________________________________________________________________
 PYTORCH IMPLEMENTATION
 _________________________________________________________________________________________________________________________________________________________________________________
 
-The neural_network.py library contains a set of classes for creating common neural network architecures by simply specifying the required amount of nodes in each layer along with the desired system hyperparameters. Together with these general learning models there also exist functions for carrying out useful machine learning analysis and testing.
+The neural_network.py library contains a set of classes for creating common neural network architecures by simply specifying the required amount of nodes in each layer along with the desired system hyperparameters. Together with these general learning models there also exist functions for carrying out useful machine learning features for preprocessing, analysis and testing.
 
 _________________________________________________________________________________________________________________________________________________________________________________
 
