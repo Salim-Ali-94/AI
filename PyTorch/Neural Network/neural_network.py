@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from math import factorial
 import itertools, cv2, imutils
-import torch, torchvision, os
+import torch, torchvision, os, re
 import torch.nn as NN
 import torch.optim as solver
 from torch.utils.data import DataLoader as loader
@@ -16,6 +16,7 @@ import torchvision.datasets as datasets
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 from torchsummary import summary
+import torch.nn.init
 plt.rcParams["font.family"] = "Arial"
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
 
@@ -26,6 +27,7 @@ optimization = {"adam": "Adam", "rms": "RMSProp", "sgd": "SGD"}
 dataset = {"mnist": "MNIST", "cifar": "CIFAR10", "celeb": "CelebA", "fashion": "FashionMNIST", "emnist": "EMNIST"}
 normalizer = {"batch": "BatchNorm2d", "instance": "InstanceNorm2d", "layer": "LayerNorm2d"}
 pool = {"average": "AvgPool2d", "max": "MaxPool2d"}
+initialization = {"ku": "kaiming_uniform_", "kn": "kaiming_normal_", "xu" : "xavier_uniform_", "xn" : "xavier_normal_"}
 function = lambda transform, slope = None: getattr(torch.nn, transform)(dim = 1) if ("Softmax" in transform) else getattr(torch.nn, transform)(slope) if (("LeakyReLU" in transform) & (slope != None)) else getattr(torch.nn, transform)()
 criterion = lambda score: getattr(torch.nn, score[0])(ignore_index = score[1]) if (type(score) != str) else getattr(torch.nn, score)()
 algorithm = lambda model, method, learning_rate, momentum = 0, beta = (): getattr(torch.optim, method)(model.parameters(), lr = learning_rate, betas = beta) if (beta != ()) else getattr(torch.optim, method)(model.parameters(), lr = learning_rate, momentum = momentum) if (momentum != 0) else getattr(torch.optim, method)(model.parameters(), lr = learning_rate)
@@ -33,6 +35,7 @@ library = lambda family, folder, convert: getattr(torchvision.datasets, family)(
 normalize = lambda data: (data - data.min()) / (data.max() - data.min())
 aggregate = lambda transform, dimension: getattr(torch.nn, transform)(dimension, affine = True) if ("Instance" in transform) else getattr(torch.nn, transform)(dimension)
 sampling = lambda transform, window: getattr(torch.nn, transform)(window)
+initialize = lambda method, weight, transform = "relu": getattr(torch.nn.init, method)(weight, nonlinearity = transform) if ("kaiming" in method) else getattr(torch.nn.init, method)(weight)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class ArtificialNeuralNetwork(NN.Module):
@@ -48,7 +51,8 @@ class ArtificialNeuralNetwork(NN.Module):
 		for index in range(depth):
 
 			if ((index == 0) & (flatten == True)): self.network.add_module("transform", NN.Flatten())
-			self.network.add_module(f"layer {index + 1}", NN.Linear(nodes[index], nodes[index + 1]))
+			self.network.add_module(f"layer {index + 1}", NN.Linear(nodes[index], nodes[index + 1])) if ((type(nodes[index]) == int) & (type(nodes[index + 1]) == int)) else self.network.add_module(f"layer {index + 1}", NN.Linear(nodes[index][0], nodes[index + 1])) if ((type(nodes[index]) != int) & (type(nodes[index + 1]) == int)) else self.network.add_module(f"layer {index + 1}", NN.Linear(nodes[index], nodes[index + 1][0])) if ((type(nodes[index]) == int) & (type(nodes[index + 1]) != int)) else self.network.add_module(f"layer {index + 1}", NN.Linear(nodes[index][0], nodes[index + 1][0]))
+			if (type(nodes[index]) != int): initialize(initialization[nodes[index][1].lower().lstrip().rstrip()], list(self.named_parameters())[0][-1]) if ((nodes[index][1].lower().lstrip().rstrip() in initialization) & ("k" not in nodes[index][1].lower().lstrip().rstrip())) else initialize(initialization[nodes[index][1].lower().lstrip().rstrip()], list(self.named_parameters())[0][-1], activation[functions[index].lower().lstrip().rstrip()].lower()) if ((nodes[index][1].lower().lstrip().rstrip() in initialization) & ("k" in nodes[index][1].lower().lstrip().rstrip()) & (type(functions[index]) == str)) else initialize(initialization[nodes[index][1].lower().lstrip().rstrip()], list(self.named_parameters())[0][-1], activation[functions[index][0].lower().lstrip().rstrip()].lower()) if ((nodes[index][1].lower().lstrip().rstrip() in initialization) & ("k" in nodes[index][1].lower().lstrip().rstrip()) & (type(functions[index]) != str)) else initialize(initialization["xn"], list(self.named_parameters())[0][-1])
 			if (type(functions[index]) != str): self.network.add_module(f"activity {index + 1}", function(activation[functions[index][0].lower().rstrip().lstrip()])) if ((functions[index][0].lower().rstrip().lstrip() in activation) & (functions[index][0].lower().rstrip().lstrip() != "") & (len(functions[index]) == 2) & (functions[index][-1] >= 1)) else self.network.add_module(f"activity {index + 1}", function(activation[functions[index][0].lower().rstrip().lstrip()], functions[index][1])) if ((functions[index][0].lower().rstrip().lstrip() in activation) & (functions[index][0].lower().rstrip().lstrip() != "") & (len(functions[index]) == 2) & (functions[index][-1] < 1)) else self.network.add_module(f"activity {index + 1}", function(activation[functions[index][0].lower().rstrip().lstrip()], functions[index][1])) if ((functions[index][0].lower().rstrip().lstrip() in activation) & (functions[index][0].lower().rstrip().lstrip() != "") & (len(functions[index]) == 3)) else self.network.add_module(f"activity {index + 1}", function(activation["tanh"])), self.network.add_module(f"drop {index + 1}", torch.nn.Dropout(functions[index][-1] / 100)) if (functions[index][-1] >= 1) else None
 			elif (functions[index].lower().rstrip().lstrip() in activation): self.network.add_module(f"activity {index + 1}", function(activation[functions[index].lower().rstrip().lstrip()]))
 			elif (functions[index].lower().rstrip().lstrip() != ""): self.network.add_module(f"activity {index + 1}", function(activation["tanh"]))
@@ -152,7 +156,7 @@ def scale(data, minimum, maximum):
 	return data
 
 
-def extract(file, directory = None, encoding = None, convert = [], rows = [], columns = [], output = None, label = None, flag = None):
+def extract(file, directory = None, encoding = None, convert = [], rows = None, columns = [], output = None, label = None, flag = None):
 
 	if (directory == None):
 
@@ -195,7 +199,6 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 	train = group(train_x, train_y)
 	trainer = loader(dataset = train, batch_size = batch, shuffle = True, num_workers = 2)
 	tester, validater = None, None
-	duplicate = validate_percent
 
 	if (test_percent > 0):
 
@@ -212,6 +215,7 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 		else: test_y = testing_y.float()
 		test = group(test_x, test_y)
 		tester = loader(dataset = test, batch_size = batch, shuffle = True, num_workers = 2)
+		duplicate = validate_percent
 		validate_percent = (validation_percentage*len(characteristics) / len(train_x)) / 100
 
 	if (validate_percent > 0):
@@ -229,7 +233,7 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 		else: validate_y = validation_y.float()
 		validate = group(validate_x, validate_y)
 		validater = loader(dataset = validate, batch_size = batch, shuffle = True, num_workers = 2)
-		
+
 	return trainer, tester, validater
 
 
@@ -239,6 +243,7 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	if (CNN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, neurons, channels, height, offset = CNN
 	elif (TNN != []): width_embedding, width_source_vocabulary, width_target_vocabulary, width_encoder, width_decoder, padding_index, heads, expansion, drop_percent, maximum = TNN
 	elif (ANN != []): neurons, functions = ANN
+	if (TNN == []): output, size = neurons[-1] if (type(neurons[-1]) == int) else neurons[-1][0], neurons[0] if (type(neurons[0]) == int) else neurons[0][0]
 	collect, ratio = [], []
 	accuracy, residual = [], []
 	score, deviation = [], []
@@ -246,20 +251,20 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 	batch_residual, batch_score = [], []
 	correct, incorrect = 0, 0
 	labels, flag = [], False
-	if (type(cost) == str): functions[-1] = "" if ((neurons[-1] > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1])) else functions[-1]
-	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channels, pooling, direction, offset, normalization, flatten, unflatten).to(device) if (CNN != []) else TransformerNeuralNetwork(width_embedding, width_source_vocabulary, width_target_vocabulary, width_encoder, width_decoder, padding_index, heads, expansion, maximum, drop_percent).to(device) if (TNN != []) else ArtificialNeuralNetwork(neurons, functions, None, flatten, unflatten).to(device)
+	if (type(cost) == str): functions[-1] = "" if ((output > 1) & (cost.lower().rstrip().lstrip() == "crossentropy") & ("softmax" in functions[-1])) else functions[-1]
+	model = ConvolutionalNeuralNetwork(kernel, stride, padding, height, convolutions, functions, neurons, channels, pooling, direction, offset, normalization, flatten, unflatten).to(device) if (CNN != []) else TransformerNeuralNetwork(width_embedding, width_source_vocabulary, width_target_vocabulary, width_encoder, width_decoder, padding_index, heads, expansion, maximum, drop_percent).to(device) if (TNN != []) else ArtificialNeuralNetwork(neurons, functions, flatten = flatten, unflatten = unflatten).to(device)
 	if (type(propagator) == str): optimizer = algorithm(model, optimization[propagator.lower().rstrip().lstrip()], learning_rate) if (propagator.lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
 	elif (propagator[0].lower().rstrip().lstrip() in optimization): optimizer = algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, beta = propagator[1]) if (propagator[0].lower().rstrip().lstrip() == "adam") else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate, momentum = propagator[1]) if ((propagator[0].lower().rstrip().lstrip() == "sgd") | (propagator[0].lower().rstrip().lstrip() == "rms")) else algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate) if (propagator[0].lower().rstrip().lstrip() in optimization) else algorithm(model, optimization["adam"], learning_rate)
-	error = cost if callable(cost) else criterion([utility[cost[0].lower().rstrip().lstrip() if (cost[0].lower().rstrip().lstrip() in utility) else "crossentropy" if (neurons[-1] > 1) else "mse"], cost[1]]) if ((type(cost) != str) & (TNN == [])) else criterion([utility[cost[0].lower().rstrip().lstrip() if (cost[0].lower().rstrip().lstrip() in utility) else "crossentropy"], cost[1]]) if ((type(cost) != str) & (TNN != [])) else criterion(utility[cost.lower().rstrip().lstrip()]) if (cost.lower().rstrip().lstrip() in utility) else criterion(utility["crossentropy" if (neurons[-1] > 1) else "mse"]) if ((TNN == []) & (type(cost) == str)) else criterion(utility["crossentropy"]) if ((TNN != []) & (type(cost) == str)) else criterion(utility["mse"])
-	if (TNN == []): labels += list(set([element.item() for element in list(itertools.chain.from_iterable([y for x, y in trainer]))])) if (neurons[-1] == 1) else labels
+	error = cost if callable(cost) else criterion([utility[cost[0].lower().rstrip().lstrip() if (cost[0].lower().rstrip().lstrip() in utility) else "crossentropy" if (neurons[-1] > 1) else "mse"], cost[1]]) if ((type(cost) != str) & (TNN == [])) else criterion([utility[cost[0].lower().rstrip().lstrip() if (cost[0].lower().rstrip().lstrip() in utility) else "crossentropy"], cost[1]]) if ((type(cost) != str) & (TNN != [])) else criterion(utility[cost.lower().rstrip().lstrip()]) if (cost.lower().rstrip().lstrip() in utility) else criterion(utility["crossentropy" if (output > 1) else "mse"]) if ((TNN == []) & (type(cost) == str)) else criterion(utility["crossentropy"]) if ((TNN != []) & (type(cost) == str)) else criterion(utility["mse"])
+	if (TNN == []): labels += list(set([element.item() for element in list(itertools.chain.from_iterable([y for x, y in trainer]))])) if (output == 1) else labels
 	mode = True if (TNN != []) else False
 	model.train()
 	os.system("cls")
 	print(), print("*"*120)
-	print(), print("MODEL ARCHITECTURE")
+	print(), print(f"MODEL ARCHITECTURE ({'Transformer' if (TNN != []) else 'Convolutional Neural Network' if (CNN != []) else 'Artificial Neural Network' if ((ANN != []) & (len(neurons) > 2)) else 'Perceptron'})")
 	print(), print("*"*120)
-	try: print(), print(summary(model, (channels, height, height))) if (CNN != []) else print(summary(model, (heads, width_embedding))) if (TNN != []) else print(summary(model, (1, neurons[0])))
-	except Exception as e: print(), print(e), print(), print(model)
+	try: print(), print(summary(model, (channels, height, height))) if (CNN != []) else print(summary(model, (heads, width_embedding))) if (TNN != []) else print(summary(model, (1, size)))
+	except Exception as e: print(), print(model)
 	print(), print("*"*120)
 
 	for epoch in range(episodes):
@@ -281,12 +286,12 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 
 				for cycle in range(len(prediction)):
 
-					if (neurons[-1] > 1):
+					if (prediction.shape[-1] > 1):
 
 						if (torch.argmax(prediction[cycle]) == y[cycle]): correct += 1
 						else: incorrect += 1
 
-					elif (neurons[-1] == 1):
+					elif (prediction.shape[-1] == 1):
 
 						if (min(labels, key = lambda x: abs(x - prediction[cycle].item())) == y[cycle].item()): correct += 1
 						else: incorrect += 1
@@ -318,8 +323,8 @@ def learn(trainer, learning_rate, episodes, cost, propagator, ANN = [], CNN = []
 def train(trainer, learning_rate, episodes, cost, propagator, GAN = [], CGAN = [], CWGAN = [], flatten = [], unflatten = [], show = True):
 
 	assert (GAN != []) | (CGAN != []) | (CWGAN != []), "A MODEL ARCHITECTURE IS REQUIRED"
-	if (CGAN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, noise_width, channels, height, offset = DCGAN
-	elif (CWGAN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, noise_width, length, lamda, channels, height, offset = DCWGANGP
+	if (CGAN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, noise_width, channels, height, offset = CGAN
+	elif (CWGAN != []): convolutions, kernel, stride, padding, normalization, pooling, functions, direction, noise_width, length, lamda, channels, height, offset = CWGAN
 	elif (GAN != []): neurons, functions, noise_width = GAN
 	block_error, flag = [], False
 	collect_generator, collect_critic, error_generator, error_critic = [], [], [], []
@@ -430,12 +435,12 @@ def plot(data, colour, name, x, y, compare = False):
 	for spine in axis.spines.values(): spine.set_visible(False)
 	plt.tick_params(axis = "x", which = "both", bottom = False, top = False)
 	plt.tick_params(axis = "y", which = "both", left = False, right = False)
-	if (compare == True): plt.plot(list(range(1, len(data[0]) + 1)), data[0], color = f"{colour[0][0] if (type(colour[0]) != str) else colour[0]}", alpha = colour[0][1] if (type(colour[0]) != str) else 1, linewidth = 1, label = f"{name[0]}"), plt.plot(list(range(1, len(data[1]) + 1)), data[1], color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", alpha = colour[1][1] if (type(colour[1]) != str) else 1, linewidth = 1, label = f"{name[1]}"), plt.scatter([list(range(1, len(data[1]) + 1))[-1]], [data[1][-1]], color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", marker = ".") if ((type(colour[0]) != str) & (type(colour[1]) != str)) else None
+	if (compare == True): plt.plot(list(range(1, len(data[0]) + 1)), data[0], color = f"{colour[0][0] if (type(colour[0]) != str) else colour[0]}", alpha = colour[0][1] if (type(colour[0]) != str) else 1, linewidth = 1, label = name[0] if ((name[0] != "") & (name[0] != None)) else "_nolegend_"), plt.plot(list(range(1, len(data[1]) + 1)), data[1], color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", alpha = colour[1][1] if (type(colour[1]) != str) else 1, linewidth = 1, label = name[1] if ((name[1] != "") & (name[1] != None)) else "_nolegend_"), plt.scatter([list(range(1, len(data[1]) + 1))[-1]], [data[1][-1]], color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", marker = ".") if ((type(colour[0]) != str) | (type(colour[1]) != str)) else None
 	elif ((type(data[0]) != list) & (type(data[0]) != np.ndarray)): plt.plot(list(range(1, len(data) + 1)), data, color = f"{colour}", linewidth = 1)
 	else: plt.scatter(data[0], data[1], color = f"{colour}", marker = ".", alpha = 0.2)
 	plt.xlabel(f"{x}"), plt.ylabel(f"{y}")
-	if (compare == True): plt.legend(loc = "best")
-	plt.savefig(f"{name if (compare == False) else name[2]}.png", dpi = 200)
+	if (compare == True): plt.legend(loc = "best") if (((name[0] != "") & (name[0] != None)) | ((name[1] != "") & (name[1] != None))) else None
+	plt.savefig(f"{name if (compare == False) else name[-1]}.png", dpi = 200)
 	plt.show()
 
 
@@ -620,6 +625,7 @@ def processor(generator, critic, row, column, size, noise_width, name, flag = Fa
 
 	plt.savefig(f"{name}.png", dpi = 200)
 	plt.show()
+
 
 def gradient_penalty(critic, real_image, fake_image):
 
