@@ -79,7 +79,6 @@ class Perceptron(object):
 			for index in range(data.shape[0]):
 
 				output = int(self.classifier(data[index]))
-
 				if (output == target[index]): correct += 1
 				elif (output != target[index]): incorrect += 1
 
