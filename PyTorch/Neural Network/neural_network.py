@@ -314,7 +314,7 @@ def extract(file, directory = None, encoding = None, convert = None, rows = None
 		data = truncate(data, list(set(rows)), columns, label)
 		dimension = len(data.iloc[0]) - 1
 		if (encoding != []): mapping = { encoding[index][0]: encoding[index][1] for index in range(len(encoding)) }, 
-							 data.iloc[:, -1] = data.iloc[:, -1].apply(lambda index: mapping[index])
+						 data.iloc[:, -1] = data.iloc[:, -1].apply(lambda index: mapping[index])
 		if (replacer != []): data = replace(data, replacer)
 		matrix = data.iloc[:, 0:dimension].values.astype(np.float64)
 		if (flag != None): inputs = normalize(matrix)
