@@ -411,12 +411,12 @@ def information(ANN, CNN, AE, GAN, DCGAN, DCWGANGP, model, learning_rate, cost, 
 
 	print("*"*120), print()
 	print(f"MODEL ARCHITECTURE ({'Artificial Neural Network' if ((ANN != []) & (len(neurons) > 2)) else 
-								 'Convolutional Neural Network' if (CNN != []) else
-								 'Perceptron' if ((ANN != []) & (len(neurons) <= 2)) else
-								 'Autoencoder' if (AE != []) else
-								 'Generative Adversarial Network' if (GAN != []) else
-								 'Deep Convolutional Generative Adversarial Network' if (DCGAN != []) else
-								 'Deep Convolutional Wasserstein Generative Adversarial Network + Gradient Penalty' if (DCWGANGP != [])})")
+				     'Convolutional Neural Network' if (CNN != []) else
+				     'Perceptron' if ((ANN != []) & (len(neurons) <= 2)) else
+				     'Autoencoder' if (AE != []) else
+				     'Generative Adversarial Network' if (GAN != []) else
+				     'Deep Convolutional Generative Adversarial Network' if (DCGAN != []) else
+				     'Deep Convolutional Wasserstein Generative Adversarial Network + Gradient Penalty' if (DCWGANGP != [])})")
 	print(), print("*"*120)
 
 	try: 
@@ -439,12 +439,12 @@ def information(ANN, CNN, AE, GAN, DCGAN, DCWGANGP, model, learning_rate, cost, 
 	print(), print("*"*120)
 	print("*"*120), print()
 	print(f"SUMMARY OF HYPERPARAMETERS ({'Regression' if (regression == True) else 
-										 'Binary Classification' if ((ANN != []) & (size == 1) & (len(labels) == 2)) else
-										 'Multi-Class Classification' if ((ANN != []) & (size == 1) & (len(labels) > 2)) else
-										 'Multi-Label Classification' if ((ANN != []) & (size > 1) & (len(labels) >= 2)) else
-										 'Image Processing' if (CNN != []) else
-										 'Data Processing' if (AE != []) else
-										 'Data Creation' if ((GAN != []) | (DCGAN != []) | (DCWGANGP != []))})")
+					     'Binary Classification' if ((ANN != []) & (size == 1) & (len(labels) == 2)) else
+					     'Multi-Class Classification' if ((ANN != []) & (size == 1) & (len(labels) > 2)) else
+					     'Multi-Label Classification' if ((ANN != []) & (size > 1) & (len(labels) >= 2)) else
+					     'Image Processing' if (CNN != []) else
+					     'Data Processing' if (AE != []) else
+					     'Data Creation' if ((GAN != []) | (DCGAN != []) | (DCWGANGP != []))})")
 	print(), print("*"*120)
 
 	if ((ANN != []) | (AE != [])):
@@ -606,11 +606,11 @@ def learn(file, learning_rate, episodes, cost, propagator, ANN = None, CNN = Non
 
 			print("\nEpisode:", epoch + 1)
 			if (validator == []): print("Error:", round(residual[-1], 4)), 
-								  print("Accuracy:", round(accuracy[-1], 4))
+					      print("Accuracy:", round(accuracy[-1], 4))
 			else: print("Training error:", round(residual[-1], 4)), 
-				  print("Validation error:", round(deviation[-1], 4)), 
-				  print("Training accuracy:", round(accuracy[-1], 4)), 
-				  print("Validation accuracy:", round(score[-1], 4))
+			      print("Validation error:", round(deviation[-1], 4)), 
+			      print("Training accuracy:", round(accuracy[-1], 4)), 
+			      print("Validation accuracy:", round(score[-1], 4))
 			if (flag == True): break
 
 	if (tester != []): test(model, tester, regression)
@@ -788,7 +788,7 @@ def train(trainer, learning_rate, episodes, cost, propagator, GAN = None, DCGAN 
 			print("Fake detection:", round(fake_detection[-1], 4))
 
 	if (size != 0): processor(generator, discriminator, row, column, size)
-    if (name != None): process.send_signal(signal.SIGINT), driver.quit()
+    	if (name != None): process.send_signal(signal.SIGINT), driver.quit()
 	return generator, critic, np.array(error_generator), np.array(error_critic), np.array(detect_real), np.array(detect_fake), np.array(generator_error), np.array(critic_error), np.array(real_detection), np.array(fake_detection)
 
 
@@ -809,45 +809,45 @@ def plot(data, colour, name, x, y, compare = False):
 			if (type(name) != str):
 
 				plt.plot(list(range(1, len(data[0]) + 1)), 
-						 data[0], 
-						 color = f"{colour[0][0] if (type(colour[0]) != str) else colour[0]}", 
-						 alpha = colour[0][1] if (type(colour[0]) != str) else 1, 
-						 linewidth = 1, 
-						 label = name[0] if ((name[0] != "") & (name[0] != None) & (len(name) > 2)) else "_nolegend_")
-
-		else: 
-
-			plt.plot(list(range(1, len(data[0]) + 1)),
 					 data[0], 
 					 color = f"{colour[0][0] if (type(colour[0]) != str) else colour[0]}", 
 					 alpha = colour[0][1] if (type(colour[0]) != str) else 1, 
 					 linewidth = 1, 
-					 label = "_nolegend_")
+					 label = name[0] if ((name[0] != "") & (name[0] != None) & (len(name) > 2)) else "_nolegend_")
+
+		else: 
+
+			plt.plot(list(range(1, len(data[0]) + 1)),
+				      data[0], 
+				      color = f"{colour[0][0] if (type(colour[0]) != str) else colour[0]}", 
+				      alpha = colour[0][1] if (type(colour[0]) != str) else 1, 
+				      linewidth = 1, 
+				      label = "_nolegend_")
 
 			if (type(name) != str): 
 
 				plt.plot(list(range(1, len(data[1]) + 1)), 
-						 data[1], 
-						 color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
-						 alpha = colour[1][1] if (type(colour[1]) != str) else 1, 
-						 linewidth = 1, 
-						 label = name[1] if ((name[1] != "") & (name[1] != None) & (len(name) > 2)) else "_nolegend_")
+					 data[1], 
+					 color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
+					 alpha = colour[1][1] if (type(colour[1]) != str) else 1, 
+					 linewidth = 1, 
+					 label = name[1] if ((name[1] != "") & (name[1] != None) & (len(name) > 2)) else "_nolegend_")
 
 			else: 
 
 				plt.plot(list(range(1, len(data[1]) + 1)), 
-						 data[1], 
-						 color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
-						 alpha = colour[1][1] if (type(colour[1]) != str) else 1, 
-						 linewidth = 1, 
-						 label = "_nolegend_")
+					 data[1], 
+					 color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
+					 alpha = colour[1][1] if (type(colour[1]) != str) else 1, 
+					 linewidth = 1, 
+					 label = "_nolegend_")
 
 			if ((type(colour[0]) != str) | (type(colour[1]) != str)): 
 
 				plt.scatter([list(range(1, len(data[1]) + 1))[-1]], 
-							[data[1][-1]], 
-							color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
-							marker = ".")
+					    [data[1][-1]], 
+					    color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
+					    marker = ".")
 
 			if (type(name) != str): 
 
