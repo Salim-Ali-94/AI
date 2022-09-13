@@ -313,8 +313,7 @@ def extract(file, directory = None, encoding = None, convert = None, rows = None
 		data = pd.read_csv(file, header = ticket)
 		data = truncate(data, list(set(rows)), columns, label)
 		dimension = len(data.iloc[0]) - 1
-		if (encoding != []): mapping = { encoding[index][0]: encoding[index][1] for index in range(len(encoding)) }, 
-						 data.iloc[:, -1] = data.iloc[:, -1].apply(lambda index: mapping[index])
+		if (encoding != []): mapping = { encoding[index][0]: encoding[index][1] for index in range(len(encoding)) }; data.iloc[:, -1] = data.iloc[:, -1].apply(lambda index: mapping[index])
 		if (replacer != []): data = replace(data, replacer)
 		matrix = data.iloc[:, 0:dimension].values.astype(np.float64)
 		if (flag != None): inputs = normalize(matrix)
@@ -410,13 +409,7 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 def information(ANN, CNN, AE, GAN, DCGAN, DCWGANGP, model, learning_rate, cost, propagator, neurons, convolutions, kernel, stride, padding, pooling, normalization, width, height, channels, dimension, labels, iterations, lamda, validator, horizon, regression):
 
 	print("*"*120), print()
-	print(f"MODEL ARCHITECTURE ({'Artificial Neural Network' if ((ANN != []) & (len(neurons) > 2)) else 
-				     'Convolutional Neural Network' if (CNN != []) else
-				     'Perceptron' if ((ANN != []) & (len(neurons) <= 2)) else
-				     'Autoencoder' if (AE != []) else
-				     'Generative Adversarial Network' if (GAN != []) else
-				     'Deep Convolutional Generative Adversarial Network' if (DCGAN != []) else
-				     'Deep Convolutional Wasserstein Generative Adversarial Network + Gradient Penalty' if (DCWGANGP != [])})")
+	print(f"MODEL ARCHITECTURE ({'Artificial Neural Network' if ((ANN != []) & (len(neurons) > 2)) else 'Convolutional Neural Network' if (CNN != []) else 'Perceptron' if ((ANN != []) & (len(neurons) <= 2)) else 'Autoencoder' if (AE != []) else 'Generative Adversarial Network' if (GAN != []) else 'Deep Convolutional Generative Adversarial Network' if (DCGAN != []) else 'Deep Convolutional Wasserstein Generative Adversarial Network + Gradient Penalty' if (DCWGANGP != []) else ''})")
 	print(), print("*"*120)
 
 	try: 
@@ -438,13 +431,7 @@ def information(ANN, CNN, AE, GAN, DCGAN, DCWGANGP, model, learning_rate, cost, 
 
 	print(), print("*"*120)
 	print("*"*120), print()
-	print(f"SUMMARY OF HYPERPARAMETERS ({'Regression' if (regression == True) else 
-					     'Binary Classification' if ((ANN != []) & (size == 1) & (len(labels) == 2)) else
-					     'Multi-Class Classification' if ((ANN != []) & (size == 1) & (len(labels) > 2)) else
-					     'Multi-Label Classification' if ((ANN != []) & (size > 1) & (len(labels) >= 2)) else
-					     'Image Processing' if (CNN != []) else
-					     'Data Processing' if (AE != []) else
-					     'Data Creation' if ((GAN != []) | (DCGAN != []) | (DCWGANGP != []))})")
+	print(f"SUMMARY OF HYPERPARAMETERS ({'Regression' if (regression == True) else 'Binary Classification' if ((ANN != []) & (size == 1) & (len(labels) == 2)) else 'Multi-Class Classification' if ((ANN != []) & (size == 1) & (len(labels) > 2)) else 'Multi-Label Classification' if ((ANN != []) & (size > 1) & (len(labels) >= 2)) else 'Image Processing' if (CNN != []) else 'Data Processing' if (AE != []) else 'Data Creation' if ((GAN != []) | (DCGAN != []) | (DCWGANGP != [])) else ''})")
 	print(), print("*"*120)
 
 	if ((ANN != []) | (AE != [])):
