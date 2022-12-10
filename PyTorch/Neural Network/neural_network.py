@@ -2,7 +2,7 @@ from PIL import Image
 import pandas as pd
 import numpy as np
 from math import factorial
-import itertools, cv2, imutils
+import itertools
 import torch, torchvision, os, re, sys
 import torch.nn as NN
 import torch.optim as solver
@@ -18,15 +18,9 @@ import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 from torchsummary import summary
 import torch.nn.init
-import collections, datetime, time
-from sklearn import preprocessing
+import collections
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
 import subprocess
-import optuna
 import pygame as pg
 plt.rcParams["font.family"] = "Arial"
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
@@ -37,19 +31,19 @@ utility = { "nll": "NLLLoss", "bce": "BCELoss", "mse": "MSELoss", "ce": "CrossEn
 optimization = { "adam": "Adam", "rms": "RMSProp", "sgd": "SGD", "lbfgs": "LBFGS" }
 dataset = { "mnist": "MNIST", "cifar": "CIFAR10", "celeb": "CelebA", "fashion": "FashionMNIST", "emnist": "EMNIST" }
 normalizer = { "batch": "BatchNorm2d", "instance": "InstanceNorm2d", "layer": "LayerNorm2d" }
-pool = { "avg": "AvgPool2d", "max": "MaxPool2d" }
+pool = { "avg": "AvgPool2d", "max": "MaxPool2d", "min": "MinPool2d" }
 initialization = { "ku": "kaiming_uniform_", "kn": "kaiming_normal_", "xu" : "xavier_uniform_", "xn" : "xavier_normal_" }
-expand = { "nll": "Negative Log Liklihood", "bce": "Binary Cross-Entropy", "mse": "Mean Square Error", "ce": "Cross-Entropy", "bcel": "Binary Cross-Entropy (with Logits)", "avg": "Average Pooling", "max": "Max Pooling", "batch": "Batch Norm", "layer": "Layer Norm", "instance": "Instance Norm", "sgd": "Stochastic Gradient Decent", "adam": "Adam", "rms": "Root Mean Square Propagation", "lbfgs": "Limited-memory Broyden Fletcher Goldfarb Shanno" }
+expand = { "nll": "Negative Log Liklihood", "bce": "Binary Cross-Entropy", "mse": "Mean Square Error", "ce": "Cross-Entropy", "bcel": "Binary Cross-Entropy (with Logits)", "avg": "Average Pooling", "max": "Max Pooling", "min": "Min Pooling", "batch": "Batch Norm", "layer": "Layer Norm", "instance": "Instance Norm", "sgd": "Stochastic Gradient Decent", "adam": "Adam", "rms": "Root Mean Square Propagation", "lbfgs": "Limited-memory Broyden Fletcher Goldfarb Shanno" }
 value = { "tanh": -1, "sigmoid": 0, "relu": 0, "": 0 }
-function = lambda transform, slope = None: getattr(torch.nn, transform)(dim = 1) if ("Softmax" in transform) else getattr(torch.nn, transform)(slope) if (("LeakyReLU" in transform) & (slope != None)) else getattr(torch.nn, transform)()
-criterion = lambda score: getattr(torch.nn, score[0])(ignore_index = score[1]) if (type(score) != str) else getattr(torch.nn, score)()
-algorithm = lambda model, method, learning_rate, momentum = 0, beta = (): getattr(torch.optim, method)(model.parameters(), lr = learning_rate, betas = beta) if (beta != ()) else getattr(torch.optim, method)(model.parameters(), lr = learning_rate, momentum = momentum) if (momentum != 0) else getattr(torch.optim, method)(model.parameters(), lr = learning_rate)
-library = lambda family, folder, convert: getattr(torchvision.datasets, family)(root = folder, transform = convert, download = True)
+function = lambda transform, slope = None: getattr(NN, transform)(dim = 1) if ("Softmax" in transform) else getattr(NN, transform)(slope) if (("LeakyReLU" in transform) & (slope != None)) else getattr(NN, transform)()
+criterion = lambda score: getattr(NN, score[0])(ignore_index = score[1]) if (type(score) != str) else getattr(NN, score)()
+algorithm = lambda model, method, learning_rate, momentum = 0, beta = (): getattr(solver, method)(model.parameters(), lr = learning_rate, betas = beta) if (beta != ()) else getattr(solver, method)(model.parameters(), lr = learning_rate, momentum = momentum) if (momentum != 0) else getattr(solver, method)(model.parameters(), lr = learning_rate)
+library = lambda family, folder, convert: getattr(datasets, family)(root = folder, transform = convert, download = True)
 normalize = lambda data: (data - data.min()) / (data.max() - data.min())
 standardize = lambda data, mean, standard_deviation: (data - mean) / standard_deviation
-aggregate = lambda transform, dimension: getattr(torch.nn, transform)(dimension, affine = True) if ("Instance" in transform) else getattr(torch.nn, transform)(dimension)
-sampling = lambda transform, window: getattr(torch.nn, transform)(window)
-initialize = lambda method, weight, transform = "relu": getattr(torch.nn.init, method)(weight, nonlinearity = transform) if ("kaiming" in method) else getattr(torch.nn.init, method)(weight)
+aggregate = lambda transform, dimension: getattr(NN, transform)(dimension, affine = True) if ("Instance" in transform) else getattr(NN, transform)(dimension)
+sampling = lambda transform, window: getattr(NN, transform)(window)
+initialize = lambda method, weight, transform = "relu": getattr(NN.init, method)(weight, nonlinearity = transform) if ("kaiming" in method) else getattr(NN.init, method)(weight)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -122,7 +116,7 @@ class ArtificialNeuralNetwork(NN.Module):
 				if ((functions[index][0].lower().rstrip().lstrip() in activation) & (functions[index][0].lower().rstrip().lstrip() != "") & (len(functions[index]) == 2) & (functions[index][-1] >= 1)): self.network.add_module(f"activity {index + 1}", function(activation[functions[index][0].lower().rstrip().lstrip()]))
 				elif ((functions[index][0].lower().rstrip().lstrip() in activation) & (functions[index][0].lower().rstrip().lstrip() != "") & (len(functions[index]) >= 2)): self.network.add_module(f"activity {index + 1}", function(activation[functions[index][0].lower().rstrip().lstrip()], functions[index][1]))
 				elif (functions[index][0].lower().rstrip().lstrip() != ""): self.network.add_module(f"activity {index + 1}", function(activation["tanh"]))
-				if (functions[index][-1] >= 1): self.network.add_module(f"drop {index + 1}", torch.nn.Dropout(functions[index][-1] / 100))
+				if (functions[index][-1] >= 1): self.network.add_module(f"drop {index + 1}", NN.Dropout(functions[index][-1] / 100))
 
 			elif (functions[index].lower().rstrip().lstrip() in activation): 
 
@@ -188,7 +182,7 @@ class ConvolutionalNeuralNetwork(NN.Module):
 				if ((functions[index][0].lower().rstrip().lstrip() in activation) & (functions[index][0].lower().rstrip().lstrip() != "") & (len(functions[index]) == 2) & (functions[index][-1] >= 1)): self.network.add_module(f"activation {index + 1}", function(activation[functions[index][0].lower().rstrip().lstrip()]))
 				elif ((functions[index][0].lower().rstrip().lstrip() in activation) & (functions[index][0].lower().rstrip().lstrip() != "") & (len(functions[index]) >= 2)): self.network.add_module(f"activity {index + 1}", function(activation[functions[index][0].lower().rstrip().lstrip()], functions[index][1]))
 				elif (functions[index][0].lower().rstrip().lstrip() != ""): self.network.add_module(f"activity {index + 1}", function(activation["relu"]))
-				if (functions[index][-1] >= 1): self.network.add_module(f"drop {index + 1}", torch.nn.Dropout(functions[index][-1] / 100))
+				if (functions[index][-1] >= 1): self.network.add_module(f"drop {index + 1}", NN.Dropout(functions[index][-1] / 100))
 
 			elif (functions[index].lower().rstrip().lstrip() in activation): 
 
@@ -313,7 +307,12 @@ def extract(file, directory = None, encoding = None, convert = None, rows = None
 		data = pd.read_csv(file, header = ticket)
 		data = truncate(data, list(set(rows)), columns, label)
 		dimension = len(data.iloc[0]) - 1
-		if (encoding != []): mapping = { encoding[index][0]: encoding[index][1] for index in range(len(encoding)) }; data.iloc[:, -1] = data.iloc[:, -1].apply(lambda index: mapping[index])
+
+		if (encoding != []): 
+
+			mapping = { encoding[index][0]: encoding[index][1] for index in range(len(encoding)) }
+			data.iloc[:, -1] = data.iloc[:, -1].apply(lambda index: mapping[index])
+
 		if (replacer != []): data = replace(data, replacer)
 		matrix = data.iloc[:, 0:dimension].values.astype(np.float64)
 		if (flag != None): inputs = normalize(matrix)
@@ -409,29 +408,37 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 def information(ANN, CNN, AE, GAN, DCGAN, DCWGANGP, model, learning_rate, cost, propagator, neurons, convolutions, kernel, stride, padding, pooling, normalization, width, height, channels, dimension, labels, iterations, lamda, validator, horizon, regression):
 
 	print("*"*120), print()
-	print(f"MODEL ARCHITECTURE ({'Artificial Neural Network' if ((ANN != []) & (len(neurons) > 2)) else 'Convolutional Neural Network' if (CNN != []) else 'Perceptron' if ((ANN != []) & (len(neurons) <= 2)) else 'Autoencoder' if (AE != []) else 'Generative Adversarial Network' if (GAN != []) else 'Deep Convolutional Generative Adversarial Network' if (DCGAN != []) else 'Deep Convolutional Wasserstein Generative Adversarial Network + Gradient Penalty' if (DCWGANGP != []) else ''})")
-	print(), print("*"*120)
+	if ((ANN != []) & (len(neurons) > 2)): print(f"MODEL ARCHITECTURE (Artificial Neural Network)")
+	elif (CNN != []): print(f"MODEL ARCHITECTURE (Convolutional Neural Network)")
+	elif ((ANN != []) & (len(neurons) <= 2)): print(f"MODEL ARCHITECTURE (Perceptron)")
+	elif (AE != []): print(f"MODEL ARCHITECTURE (Autoencoder)")
+	elif (GAN != []): print(f"MODEL ARCHITECTURE (Generative Adversarial Network)")
+	elif (DCGAN != []): print(f"MODEL ARCHITECTURE (Deep Convolutional Generative Adversarial Network)")
+	elif (DCWGANGP != []): print(f"MODEL ARCHITECTURE (Deep Convolutional Wasserstein Generative Adversarial Network + Gradient Penalty)")
 
 	try: 
 
 		print()
 		if (CNN != []): print(summary(model, (channels, height, width)))
-		elif ((DCGAN != []) | (DCWGANGP != [])): print(summary(model[0], (channels, height, width)), "\n\n"),
-											   print(summary(model[1], (channels, height, width)))
-		elif (GAN != []): print(summary(model[0], (1, dimension[0])), "\n\n"),
-						  print(summary(model[1], (1, dimension[1])))
+		elif ((DCGAN != []) | (DCWGANGP != [])): print(summary(model[0], (channels, height, width)), "\n\n"), print(summary(model[1], (channels, height, width)))
+		elif (GAN != []): print(summary(model[0], (1, dimension[0])), "\n\n"), print(summary(model[1], (1, dimension[1])))
 		else: print(summary(model, (1, dimension)))
 
 	except Exception as error: 
 
 		print(), print(error), print()
-		if ((DCGAN != []) | (DCWGANGP != []) | (GAN != [])): print(model[0], "\n\n"),
-														   print(model[1])
+		if ((DCGAN != []) | (DCWGANGP != []) | (GAN != [])): print(model[0], "\n\n", model[1])
 		else: print(model)
 
 	print(), print("*"*120)
 	print("*"*120), print()
-	print(f"SUMMARY OF HYPERPARAMETERS ({'Regression' if (regression == True) else 'Binary Classification' if ((ANN != []) & (size == 1) & (len(labels) == 2)) else 'Multi-Class Classification' if ((ANN != []) & (size == 1) & (len(labels) > 2)) else 'Multi-Label Classification' if ((ANN != []) & (size > 1) & (len(labels) >= 2)) else 'Image Processing' if (CNN != []) else 'Data Processing' if (AE != []) else 'Data Creation' if ((GAN != []) | (DCGAN != []) | (DCWGANGP != [])) else ''})")
+	if (regression == True): print(f"SUMMARY OF HYPERPARAMETERS (Regression)")
+	elif ((ANN != []) & (size == 1) & (len(labels) == 2)): print(f"SUMMARY OF HYPERPARAMETERS (Binary Classification)")
+	elif ((ANN != []) & (size == 1) & (len(labels) > 2)): print(f"SUMMARY OF HYPERPARAMETERS (Multi-Class Classification)")
+	elif ((ANN != []) & (size > 1) & (len(labels) >= 2)): print(f"SUMMARY OF HYPERPARAMETERS (Multi-Label Classification)")
+	elif (CNN != []): print(f"SUMMARY OF HYPERPARAMETERS (Image Processing)")
+	elif (AE != []): print(f"SUMMARY OF HYPERPARAMETERS (Data Processing)")
+	elif ((GAN != []) | (DCGAN != []) | (DCWGANGP != [])): print(f"SUMMARY OF HYPERPARAMETERS (Data Creation)")
 	print(), print("*"*120)
 
 	if ((ANN != []) | (AE != [])):
@@ -592,12 +599,8 @@ def learn(file, learning_rate, episodes, cost, propagator, ANN = None, CNN = Non
 		if (show == True):
 
 			print("\nEpisode:", epoch + 1)
-			if (validator == []): print("Error:", round(residual[-1], 4)), 
-					      print("Accuracy:", round(accuracy[-1], 4))
-			else: print("Training error:", round(residual[-1], 4)), 
-			      print("Validation error:", round(deviation[-1], 4)), 
-			      print("Training accuracy:", round(accuracy[-1], 4)), 
-			      print("Validation accuracy:", round(score[-1], 4))
+			if (validator == []): print(f"Error: {round(residual[-1], 4)}\nAccuracy: {round(accuracy[-1], 4)}")
+			else: print(f"Training error: {round(residual[-1], 4)}\nValidation error: {round(deviation[-1], 4)}\nTraining accuracy: {round(accuracy[-1], 4)}\nValidation accuracy: {round(score[-1], 4)}") 
 			if (flag == True): break
 
 	if (tester != []): test(model, tester, regression)
@@ -682,9 +685,6 @@ def train(trainer, learning_rate, episodes, cost, propagator, GAN = None, DCGAN 
 		driver = webdriver.Chrome(executable_path = "chromedriver", options = settings)
 		driver.get(server)
 		driver.maximize_window()
-		WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".mat-focus-indicator.mat-icon-button.mat-button-base"))).click()
-		WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "mat-checkbox-1-input"))).click()
-		webdriver.ActionChains(driver).send_keys(Keys.ESCAPE).perform()
 
 	for epoch in range(episodes):
 
@@ -775,7 +775,7 @@ def train(trainer, learning_rate, episodes, cost, propagator, GAN = None, DCGAN 
 			print("Fake detection:", round(fake_detection[-1], 4))
 
 	if (size != 0): processor(generator, discriminator, row, column, size)
-    	if (name != None): process.send_signal(signal.SIGINT), driver.quit()
+	if (name != None): process.send_signal(signal.SIGINT), driver.quit()
 	return generator, critic, np.array(error_generator), np.array(error_critic), np.array(detect_real), np.array(detect_fake), np.array(generator_error), np.array(critic_error), np.array(real_detection), np.array(fake_detection)
 
 
@@ -796,45 +796,45 @@ def plot(data, colour, name, x, y, compare = False):
 			if (type(name) != str):
 
 				plt.plot(list(range(1, len(data[0]) + 1)), 
-					 data[0], 
-					 color = f"{colour[0][0] if (type(colour[0]) != str) else colour[0]}", 
-					 alpha = colour[0][1] if (type(colour[0]) != str) else 1, 
-					 linewidth = 1, 
-					 label = name[0] if ((name[0] != "") & (name[0] != None) & (len(name) > 2)) else "_nolegend_")
+						 data[0], 
+						 color = f"{colour[0][0] if (type(colour[0]) != str) else colour[0]}", 
+						 alpha = colour[0][1] if (type(colour[0]) != str) else 1, 
+						 linewidth = 1, 
+						 label = name[0] if ((name[0] != "") & (name[0] != None) & (len(name) > 2)) else "_nolegend_")
 
 		else: 
 
 			plt.plot(list(range(1, len(data[0]) + 1)),
-				      data[0], 
-				      color = f"{colour[0][0] if (type(colour[0]) != str) else colour[0]}", 
-				      alpha = colour[0][1] if (type(colour[0]) != str) else 1, 
-				      linewidth = 1, 
-				      label = "_nolegend_")
+					 data[0], 
+					 color = f"{colour[0][0] if (type(colour[0]) != str) else colour[0]}", 
+					 alpha = colour[0][1] if (type(colour[0]) != str) else 1, 
+					 linewidth = 1, 
+					 label = "_nolegend_")
 
 			if (type(name) != str): 
 
 				plt.plot(list(range(1, len(data[1]) + 1)), 
-					 data[1], 
-					 color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
-					 alpha = colour[1][1] if (type(colour[1]) != str) else 1, 
-					 linewidth = 1, 
-					 label = name[1] if ((name[1] != "") & (name[1] != None) & (len(name) > 2)) else "_nolegend_")
+						 data[1], 
+						 color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
+						 alpha = colour[1][1] if (type(colour[1]) != str) else 1, 
+						 linewidth = 1, 
+						 label = name[1] if ((name[1] != "") & (name[1] != None) & (len(name) > 2)) else "_nolegend_")
 
 			else: 
 
 				plt.plot(list(range(1, len(data[1]) + 1)), 
-					 data[1], 
-					 color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
-					 alpha = colour[1][1] if (type(colour[1]) != str) else 1, 
-					 linewidth = 1, 
-					 label = "_nolegend_")
+						 data[1], 
+						 color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
+						 alpha = colour[1][1] if (type(colour[1]) != str) else 1, 
+						 linewidth = 1, 
+						 label = "_nolegend_")
 
 			if ((type(colour[0]) != str) | (type(colour[1]) != str)): 
 
 				plt.scatter([list(range(1, len(data[1]) + 1))[-1]], 
-					    [data[1][-1]], 
-					    color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
-					    marker = ".")
+							[data[1][-1]], 
+							color = f"{colour[1][0] if (type(colour[1]) != str) else colour[1]}", 
+							marker = ".")
 
 			if (type(name) != str): 
 
@@ -1225,7 +1225,8 @@ def initialize_variables(file, cost, ANN, CNN, AE, GAN, DCGAN, DCWGANGP, train_p
 
 		if (regression == None):
 
-			regression = True if ((decimal > 0) | (len(labels) > len(categories)*0.1)) else False
+			if ((decimal > 0) | (len(labels) > len(categories)*0.1)): regression = True
+			else: regression = False
 
 		unique = [item for item in catalogue if (catalogue[item] > 1)]
 		output = len(unique)
@@ -1272,9 +1273,9 @@ def initialize_variables(file, cost, ANN, CNN, AE, GAN, DCGAN, DCWGANGP, train_p
 
 			for index in range(3):
 
-				item = "training" (if index == 0) else "testing" (if index == 1) else "validation"
-				family = "train" (if index == 0) else "test" (if index == 1) else "validate"
-				suffix = "_trainer"  (if index == 0) else "_tester" (if index == 1) else "_validator"
+				item = "training" if (index == 0) else "testing" if (index == 1) else "validation"
+				family = "train" if (index == 0) else "test" if (index == 1) else "validate"
+				suffix = "_trainer"  if (index == 0) else "_tester" if (index == 1) else "_validator"
 				name = file[index].lower().replace(item, "").replace(family, "").replace("dataset", "").replace("data", "").replace("_", "").replace(".", "").replace("csv", "").replace("txt", "").lstrip().rstrip().replace(" ", "_") + suffix
 
 				if f"{name}.pth" not in os.listdir(os.getcwd()):
