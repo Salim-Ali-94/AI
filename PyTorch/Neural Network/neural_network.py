@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from math import factorial
 import itertools
-import torch, torchvision, os, re, sys
+import torch, torchvision, os, sys
 import torch.nn as NN
 import torch.optim as solver
 from torch.utils.data import DataLoader as loader
