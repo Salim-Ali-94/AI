@@ -7,9 +7,9 @@ plt.rcParams["font.family"] = "Arial"
 
 def initialize():
 
-    data = pd.read_csv('iris.csv')
+    data = pd.read_csv("iris.csv")
     classes = data.iloc[0:100, 4].values
-    classes = np.where(classes == 'setosa', 0, 1)
+    classes = np.where(classes == "setosa", 0, 1)
     characteristics = data.iloc[0:100, [0, 2]].values
     return characteristics, classes
 
@@ -49,10 +49,10 @@ def plot_results(neuron, new_point):
     plt.plot(neuron.test_inputs[:, 0], neuron.test_inputs[:, 1], ".", color = "green", label = "Test data")
     plt.gca().set_xlim(left = minimum_input, right = maximum_input)
     plt.gca().set_ylim(bottom = minimum_output, top = maximum_output)
-    plt.xlabel('Sepal length')
-    plt.ylabel('Petal length')
+    plt.xlabel("Sepal length")
+    plt.ylabel("Petal length")
     plt.legend()
-    plt.savefig('classifier_results.png', dpi = 200)
+    plt.savefig("classifier_results.png", dpi = 200)
     plt.show()
 
     
