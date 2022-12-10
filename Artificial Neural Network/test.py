@@ -5,12 +5,12 @@ import pandas as pd
 
 def initialize():
 
-	data = pd.read_csv('iris.csv')
+	data = pd.read_csv("iris.csv")
 	labels = data.iloc[0:100, 4].values
-	labels = np.where(labels == 'setosa', 0, 1)
+	labels = np.where(labels == "setosa", 0, 1)
 	remainder = data.iloc[100:150, 4].values
 	labels = np.concatenate((labels, remainder))
-	labels = np.where(labels == 'virginica', 0.5, labels)
+	labels = np.where(labels == "virginica", 0.5, labels)
 	labels = np.copy(labels[np.newaxis].T)
 	features = data.iloc[0:150, 0:4].values
 	return features, labels
