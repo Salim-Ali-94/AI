@@ -21,6 +21,9 @@ import torch.nn.init
 import collections
 from selenium import webdriver
 import subprocess
+import cv2
+from matplotlib import cm
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"
 import pygame as pg
 plt.rcParams["font.family"] = "Arial"
 os.environ["KMP_DUPLICATE_LIB_OK"] = "True"
@@ -49,7 +52,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class ArtificialNeuralNetwork(NN.Module):
 
-	def __init__(self, nodes, functions, system = None, flatten = False, unflatten = False, channels = 1, width = 28, height = 28, normalization = None):
+	def __init__(self, nodes, functions, system = None, flatten = False, unflatten = False, channels = 1, width = 28, height = 28, normalization = None, position = 1):
 
 		super().__init__()
 		depth = len(nodes) - 1
@@ -80,9 +83,9 @@ class ArtificialNeuralNetwork(NN.Module):
 
 				self.network.add_module(f"layer {index + 1}", NN.Linear(nodes[index][0], nodes[index + 1][0]))
 
-			if ((type(nodes[index]) != int) | ((len([item for item in nodes if type(item) != int]) > 0) & (index == 0) & (len(nodes[0][0] if (type(neurons[0]) != int) else nodes[0]) >= 100))):
+			if ((type(nodes[index]) != int) | ((len([item for item in nodes if type(item) != int]) > 0) & (index == 0) & ((len(nodes[0][0]) if (type(nodes[0]) != int) else nodes[0]) >= 100) )):
 
-				if ((type(nodes[index]) == int) & (len(nodes[0][0] if (type(neurons[0]) != int) else nodes[0]) >= 100)):
+				if ((type(nodes[index]) == int) & ((len(nodes[0][0]) if (type(nodes[0]) != int) else nodes[0]) >= 100)):
 
 					nodes[index] = (nodes[index], [item for item in nodes if type(item) != int][-1][1])
 
@@ -199,13 +202,13 @@ class ConvolutionalNeuralNetwork(NN.Module):
 
 			if ((direction == 1) & (nodes != [])):
 
-				width = self.dimension(width, kernel[index] if (type(kernel[index]) == int) else kernel[index][0], stride[index] if (type(stride[index]) == int) else stride[index][0], padding[index] if (type(padding[index]) == int) else padding[index][0], pooling[index] if (type(pooling[index]) == int) else pooling[index][1][0])
-				height = self.dimension(height, kernel[index] if (type(kernel[index]) == int) else kernel[index][1], stride[index] if (type(stride[index]) == int) else stride[index][1], padding[index] if (type(padding[index]) == int) else padding[index][1], pooling[index] if (type(pooling[index]) == int) else pooling[index][1][1])
+				width = self.dimension(width, kernel[index] if (type(kernel[index]) == int) else kernel[index][0], stride[index] if (type(stride[index]) == int) else stride[index][0], padding[index] if (type(padding[index]) == int) else padding[index][0], pooling[index] if (type(pooling[index]) == int) else pooling[index][1])
+				height = self.dimension(height, kernel[index] if (type(kernel[index]) == int) else kernel[index][1], stride[index] if (type(stride[index]) == int) else stride[index][1], padding[index] if (type(padding[index]) == int) else padding[index][1], pooling[index] if (type(pooling[index]) == int) else pooling[index][1])
 
 			elif ((direction == -1) & (nodes != [])):
 
-				width = self.expand(width, kernel[index] if (type(kernel[index]) == int) else kernel[index][0], stride[index] if (type(stride[index]) == int) else stride[index][0], padding[index] if (type(padding[index]) == int) else padding[index][0], pooling[index] if (type(pooling[index]) == int) else pooling[index][1][0])
-				height = self.expand(height, kernel[index] if (type(kernel[index]) == int) else kernel[index][1], stride[index] if (type(stride[index]) == int) else stride[index][1], padding[index] if (type(padding[index]) == int) else padding[index][1], pooling[index] if (type(pooling[index]) == int) else pooling[index][1][1])
+				width = self.expand(width, kernel[index] if (type(kernel[index]) == int) else kernel[index][0], stride[index] if (type(stride[index]) == int) else stride[index][0], padding[index] if (type(padding[index]) == int) else padding[index][0], pooling[index] if (type(pooling[index]) == int) else pooling[index][1])
+				height = self.expand(height, kernel[index] if (type(kernel[index]) == int) else kernel[index][1], stride[index] if (type(stride[index]) == int) else stride[index][1], padding[index] if (type(padding[index]) == int) else padding[index][1], pooling[index] if (type(pooling[index]) == int) else pooling[index][1])
 
 			if ((nodes == []) & (flatten == True) & (index == depth - 1)): 
 
@@ -223,7 +226,7 @@ class ConvolutionalNeuralNetwork(NN.Module):
 
 	def forward(self, data): 
 
-		output = self.network(data)
+		output = self.network(data.to(device))
 		return output
 
 
@@ -294,7 +297,7 @@ def refresh(*args):
 		else: variable = value
 		array.append(variable)
 
-	return array
+	return array if (len(array) > 1) else array[0]
 
 
 def extract(file, directory = None, encoding = None, convert = None, rows = None, columns = None, output = None, label = None, channels = 1, batch = 0, flag = None):
@@ -324,7 +327,6 @@ def extract(file, directory = None, encoding = None, convert = None, rows = None
 	elif (batch == 0):
 
 		inputs, outputs = [], []
-		convert = refresh(convert)
 		convert.insert(0, transformation.ToTensor())
 		if (file.lower().rstrip().lstrip() in dataset): data = library(dataset[file.lower().rstrip().lstrip()], directory, transformation.Compose(list(set(convert))))
 		else: data = library(dataset["mnist"], directory, transformation.Compose(convert))
@@ -399,15 +401,16 @@ def partition(characteristics, categories, output, batch, training_percentage = 
 		print(), print("*"*120)
 		print(), print(f"Training data size: {len(train_inputs)} / {len(test_inputs) + len(train_inputs) + len(validate_inputs)} ({100*percent_train}%)")
 		print(f"Validation data size: {len(validate_inputs)} / {len(test_inputs) + len(train_inputs) + len(validate_inputs)} ({round(100*duplicate, 2)}%)")
-		print(f"Testing data size: {len(test_inputs)} / {len(test_inputs) + len(train_inputs) + len(validate_inputs)} ({100*test_percent}%)")
+		print(f"Testing data size: {len(test_inputs)} / {len(test_inputs) + len(train_inputs) + len(validate_inputs)} ({100*percent_test}%)")
 		print(), print("*"*120)
 
 	return trainer, tester, validator
 
 
-def information(ANN, CNN, AE, GAN, DCGAN, DCWGANGP, model, learning_rate, cost, propagator, neurons, convolutions, kernel, stride, padding, pooling, normalization, width, height, channels, dimension, labels, iterations, lamda, validator, horizon, regression):
+def information(ANN, CNN, AE, GAN, DCGAN, DCWGANGP, model, learning_rate, cost, propagator, neurons, convolutions, kernel, stride, padding, pooling, normalization, width, height, channels, dimension, labels, iterations, lamda, validator, horizon, size, batch, regression):
 
 	print("*"*120), print()
+	normalization = refresh(normalization)
 	if ((ANN != []) & (len(neurons) > 2)): print(f"MODEL ARCHITECTURE (Artificial Neural Network)")
 	elif (CNN != []): print(f"MODEL ARCHITECTURE (Convolutional Neural Network)")
 	elif ((ANN != []) & (len(neurons) <= 2)): print(f"MODEL ARCHITECTURE (Perceptron)")
@@ -535,7 +538,7 @@ def learn(file, learning_rate, episodes, cost, propagator, ANN = None, CNN = Non
 	collect, ratio, accuracy, residual, labels = [], [], [], [], []
 	score, deviation, batch_accuracy, batch_error = [], [], [], []
 	batch_residual, batch_score, correct, incorrect, flag = [], [], 0, 0, False
-	neurons, functions, convolutions, error, dimension, size, width, height, channels, LUT, trainer, tester, validator, labels, mode, regression, flatten, unflatten = initialize_variables(file, cost, ANN, CNN, TNN, train_percent, validate_percent, batch, rows, columns, directory, replacement, minimum, maximum, convert, neurons, convolutions if (CNN != []) else None, functions)
+	neurons, functions, convolutions, error, dimension, size, width, height, channels, LUT, trainer, tester, validator, labels, mode, regression, flatten, unflatten = initializeVariables(file, cost, ANN, CNN, AE, [], [], [], train_percent, validate_percent, batch, rows, columns, directory, replacement, minimum, maximum, convert, neurons, convolutions if (CNN != []) else None, functions)
 	if (CNN != []): model = ConvolutionalNeuralNetwork(kernel, stride, padding, width, height, convolutions, functions, neurons, channels, pooling, direction, offset, normalization, position, flatten, unflatten).to(device)
 	else: model = ArtificialNeuralNetwork(neurons, functions, flatten = flatten, unflatten = unflatten).to(device)
 
@@ -551,7 +554,7 @@ def learn(file, learning_rate, episodes, cost, propagator, ANN = None, CNN = Non
 		elif (propagator[0].lower().rstrip().lstrip() in optimization): optimizer = algorithm(model, optimization[propagator[0].lower().rstrip().lstrip()], learning_rate)
 		else: optimizer = algorithm(model, optimization["adam"], learning_rate)
 
-	information(ANN, CNN, [], [], [], [], model, learning_rate, cost, propagator, neurons, convolutions, kernel, stride, padding, pooling, normalization, width, height, channels, dimension, labels, 0, 0, validator, horizon, regression)
+	information(ANN, CNN, [], [], [], [], model, learning_rate, cost, propagator, neurons, convolutions, kernel, stride, padding, pooling, normalization, width, height, channels, dimension, labels, 0, 0, validator, horizon, size, batch, regression)
 	model.train()
 
 	for epoch in range(episodes):
@@ -604,7 +607,7 @@ def learn(file, learning_rate, episodes, cost, propagator, ANN = None, CNN = Non
 			if (flag == True): break
 
 	if (tester != []): test(model, tester, regression)
-	if ((LUT != []) & (CNN != [])): evaluate(model, height, LUT, channels)
+	if ((LUT != []) & (CNN != [])): evaluate(model, channels, width, height, LUT)
 	return model, residual, accuracy, batch_error, batch_accuracy, deviation, score, batch_residual, batch_score
 
 
@@ -867,6 +870,7 @@ def test(model, data, regression):
 
 		for index, (x, y) in enumerate(data):
 
+			x, y = x.to(device), y.to(device)
 			prediction = model(x)
 
 			for cycle in range(len(prediction)):
@@ -900,31 +904,39 @@ def evaluate(model, channel, width, height, LUT):
 	white = (255, 255, 255)
 	size = (500, 500)
 	click = False
+	run = True
 	screen = pg.display.set_mode(size)
-	screen.fill(white)
+	screen.fill(black)
 	pg.display.set_caption("Test")
 	pg.init()
 
-	while True: 
+	while run: 
 
 		for event in pg.event.get():
 
 			if (event.type == pg.QUIT):
 
 				pg.quit()
-				sys.exit()
+				run = False
+				break
 
 			if (event.type == pg.KEYDOWN):
 
 				if (event.key == pg.K_ESCAPE): 
 
-					screen.fill(white)
+					screen.fill(black)
 
 				elif (event.key == pg.K_SPACE): 
 
-					matrix = np.transpose(np.array(pg.surfarray.pixels3d(screen)), axes = (1, 0, 2))
-					data = torch.Tensor(normalize(matrix).reshape(1, channel, height, width))
-					prediction = model(data)
+					matrix = np.transpose(np.array(pg.surfarray.pixels3d(screen)), axes = (2, 0, 1))
+					matrix = np.transpose(np.invert(matrix), axes = (1, 2, 0))
+					matrix = cv2.cvtColor(matrix, cv2.COLOR_BGR2GRAY).reshape(1, matrix.shape[0], matrix.shape[1])
+					matrix = normalize(matrix)
+					tensor = torch.Tensor(matrix)
+					convert = transformation.Resize((height, width))
+					data = convert(tensor)
+					image = data.reshape([1, channel, height, width])
+					prediction = model(image)
 					distribution = graph.softmax(prediction)
 					category = torch.argmax(distribution).item()
 					confidence = int(torch.max(distribution).item()*100)
@@ -943,9 +955,9 @@ def evaluate(model, channel, width, height, LUT):
 
 				x, y = pg.mouse.get_pos()
 				location = (x, y)
-				pg.draw.circle(screen, black, location, 10)
+				pg.draw.circle(screen, white, location, 10)
 
-		pg.display.flip()
+			pg.display.flip()
 
 
 def validate(model, validator, error, horizon, residual, episodes, labels = None, mode = False, regression = False):
@@ -1178,7 +1190,7 @@ def replace(data, replacer):
 	return data
 
 
-def initialize_variables(file, cost, ANN, CNN, AE, GAN, DCGAN, DCWGANGP, train_percent, validate_percent, batch, rows, columns, directory, replacement, minimum, maximum, convert, neurons = None, convolutions = None, functions = None):
+def initializeVariables(file, cost, ANN, CNN, AE, GAN, DCGAN, DCWGANGP, train_percent, validate_percent, batch, rows, columns, directory, replacement, minimum, maximum, convert, neurons = None, convolutions = None, functions = None):
 
 	neurons, convolutions, functions = refresh(neurons, convolutions, functions)
 
@@ -1199,7 +1211,7 @@ def initialize_variables(file, cost, ANN, CNN, AE, GAN, DCGAN, DCWGANGP, train_p
 		except Exception as error:
 			
 			print(), print("Error:", error)
-			X, y = extract(file, directory, convert, flag = None)
+			X, y = extract(file, directory, convert = convert, flag = None)
 			if (len(X.shape) <= 2): data = pd.DataFrame(torch.cat([X, y], dim = 1).numpy())
 			else: categories, img = y, True
 
